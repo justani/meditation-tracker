@@ -1,29 +1,41 @@
 {
   "expo": {
-    "name": "meditation-tracker",
+    "name": "Meditation Habit Tracker",
     "slug": "meditation-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
+      "backgroundColor": "#4A90E2"
     },
     "android": {
+      "package": "com.meditationtracker.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#4A90E2"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK"
+      ],
+      "versionCode": 1
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "platforms": [
+      "android"
+    ],
+    "plugins": [
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "88b23d78-a8b8-416d-9b80-da55fa762536"
+      }
     }
   }
 }
