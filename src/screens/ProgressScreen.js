@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { useMeditation } from '../context/MeditationContext';
 import { getCalendarGrid, getMonthName, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
@@ -9,7 +9,7 @@ export default function ProgressScreen() {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [activeTab, setActiveTab] = useState(SESSION_TYPES.MORNING);
   
   const calendarGrid = getCalendarGrid(selectedYear, selectedMonth);
   const monthName = getMonthName(selectedMonth);
@@ -47,81 +47,22 @@ export default function ProgressScreen() {
     return sessions.filter(session => session.date === date && session.completed);
   };
   
-  const handleDayPress = (dayData) => {
+  const handleDayPress = async (dayData) => {
     if (!dayData.isCurrentMonth) return;
     
     const dateString = dayData.date;
     const isFutureDate = new Date(dateString) > new Date(today);
     
-    if (isFutureDate) {
-      Alert.alert('Future Date', 'You cannot log meditation sessions for future dates.');
-      return;
-    }
+    if (isFutureDate) return;
     
     const daySessions = getSessionsForDate(dateString);
-    const hasMorning = daySessions.some(s => s.type === SESSION_TYPES.MORNING);
-    const hasEvening = daySessions.some(s => s.type === SESSION_TYPES.EVENING);
+    const hasSession = daySessions.some(s => s.type === activeTab);
     
-    const options = [];
-    
-    // Add options for marking sessions
-    if (!hasMorning) {
-      options.push({
-        text: 'Mark Morning Session',
-        onPress: () => markSessionComplete(dateString, SESSION_TYPES.MORNING)
-      });
+    if (hasSession) {
+      await removeSessionComplete(dateString, activeTab);
+    } else {
+      await markSessionComplete(dateString, activeTab);
     }
-    
-    if (!hasEvening) {
-      options.push({
-        text: 'Mark Evening Session', 
-        onPress: () => markSessionComplete(dateString, SESSION_TYPES.EVENING)
-      });
-    }
-    
-    // Add options for removing sessions
-    if (hasMorning) {
-      options.push({
-        text: 'Remove Morning Session',
-        style: 'destructive',
-        onPress: async () => {
-          const success = await removeSessionComplete(dateString, SESSION_TYPES.MORNING);
-          if (success) {
-            Alert.alert('Success', 'Morning session removed successfully');
-          } else {
-            Alert.alert('Error', 'Failed to remove morning session');
-          }
-        }
-      });
-    }
-    
-    if (hasEvening) {
-      options.push({
-        text: 'Remove Evening Session',
-        style: 'destructive',
-        onPress: async () => {
-          const success = await removeSessionComplete(dateString, SESSION_TYPES.EVENING);
-          if (success) {
-            Alert.alert('Success', 'Evening session removed successfully');
-          } else {
-            Alert.alert('Error', 'Failed to remove evening session');
-          }
-        }
-      });
-    }
-    
-    if (options.length === 0) {
-      Alert.alert('No Options', 'No sessions available for this date.');
-      return;
-    }
-    
-    options.push({ text: 'Cancel', style: 'cancel' });
-    
-    Alert.alert(
-      `${dayData.day} ${getMonthName(dayData.month).substring(0, 3)}`,
-      'Choose an action:',
-      options
-    );
   };
   
   const navigateMonth = (direction) => {
@@ -144,23 +85,24 @@ export default function ProgressScreen() {
   
   const renderCalendarDay = (dayData) => {
     const daySession = getSessionsForDate(dayData.date);
-    const hasMorning = daySession.some(s => s.type === SESSION_TYPES.MORNING);
-    const hasEvening = daySession.some(s => s.type === SESSION_TYPES.EVENING);
-    const hasFullDay = hasMorning && hasEvening;
+    const hasCurrentSession = daySession.some(s => s.type === activeTab);
+    const isFutureDate = new Date(dayData.date) > new Date(today);
+    const isInactive = !dayData.isCurrentMonth || isFutureDate;
     
     const dayStyle = [
       styles.calendarDay,
       !dayData.isCurrentMonth && styles.inactiveDay,
       dayData.isToday && styles.todayDay,
-      hasFullDay && styles.fullCompletionDay,
-      (hasMorning || hasEvening) && !hasFullDay && styles.partialCompletionDay
+      isFutureDate && styles.futureDay,
+      hasCurrentSession && styles.completedDay
     ];
     
     const textStyle = [
       styles.dayText,
       !dayData.isCurrentMonth && styles.inactiveDayText,
       dayData.isToday && styles.todayText,
-      (hasMorning || hasEvening) && styles.completedDayText
+      isFutureDate && styles.futureDayText,
+      hasCurrentSession && styles.completedDayText
     ];
     
     return (
@@ -168,15 +110,10 @@ export default function ProgressScreen() {
         key={dayData.date} 
         style={dayStyle}
         onPress={() => handleDayPress(dayData)}
-        activeOpacity={0.7}
+        activeOpacity={isInactive ? 1 : 0.7}
+        disabled={isInactive}
       >
         <Text style={textStyle}>{dayData.day}</Text>
-        {(hasMorning || hasEvening) && (
-          <View style={styles.sessionIndicators}>
-            {hasMorning && <View style={styles.morningIndicator} />}
-            {hasEvening && <View style={styles.eveningIndicator} />}
-          </View>
-        )}
       </TouchableOpacity>
     );
   };
@@ -194,6 +131,37 @@ export default function ProgressScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
+        {/* Session Type Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[
+              styles.tab,
+              activeTab === SESSION_TYPES.MORNING && styles.activeTab
+            ]}
+            onPress={() => setActiveTab(SESSION_TYPES.MORNING)}
+          >
+            <Text style={styles.tabIcon}>☀️</Text>
+            <Text style={[
+              styles.tabText,
+              activeTab === SESSION_TYPES.MORNING && styles.activeTabText
+            ]}>Morning</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.tab,
+              activeTab === SESSION_TYPES.EVENING && styles.activeTab
+            ]}
+            onPress={() => setActiveTab(SESSION_TYPES.EVENING)}
+          >
+            <Text style={styles.tabIcon}>🌙</Text>
+            <Text style={[
+              styles.tabText,
+              activeTab === SESSION_TYPES.EVENING && styles.activeTabText
+            ]}>Evening</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Calendar Header */}
         <View style={styles.calendarHeader}>
           <TouchableOpacity 
@@ -276,15 +244,15 @@ export default function ProgressScreen() {
         
         {/* Legend */}
         <View style={styles.legend}>
-          <Text style={styles.legendTitle}>Legend</Text>
+          <Text style={styles.legendTitle}>How to Use</Text>
           <View style={styles.legendItems}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendCircle, styles.fullCompletionDay]} />
-              <Text style={styles.legendText}>Both sessions completed</Text>
+              <Text style={styles.legendIcon}>☀️🌙</Text>
+              <Text style={styles.legendText}>Use tabs to switch between morning and evening sessions</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendCircle, styles.partialCompletionDay]} />
-              <Text style={styles.legendText}>One session completed</Text>
+              <View style={[styles.legendCircle, { backgroundColor: '#4A90E2' }]} />
+              <Text style={styles.legendText}>Tap any day to toggle that session</Text>
             </View>
           </View>
         </View>
@@ -358,6 +326,42 @@ const styles = StyleSheet.create({
     margin: 10,
     paddingVertical: 10,
   },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    margin: 10,
+    borderRadius: 15,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  activeTab: {
+    backgroundColor: '#4A90E2',
+    shadowColor: '#4A90E2',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabIcon: {
+    fontSize: 18,
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
   calendarDay: {
     width: '14.28%',
     aspectRatio: 1,
@@ -365,7 +369,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     marginVertical: 2,
-    position: 'relative',
   },
   inactiveDay: {
     opacity: 0.3,
@@ -375,11 +378,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#4A90E2',
   },
-  fullCompletionDay: {
-    backgroundColor: '#4A90E2',
+  futureDay: {
+    opacity: 0.5,
   },
-  partialCompletionDay: {
-    backgroundColor: '#87CEEB',
+  completedDay: {
+    backgroundColor: '#4A90E2',
   },
   dayText: {
     fontSize: 16,
@@ -393,27 +396,12 @@ const styles = StyleSheet.create({
     color: '#4A90E2',
     fontWeight: 'bold',
   },
+  futureDayText: {
+    color: '#ccc',
+  },
   completedDayText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-  sessionIndicators: {
-    position: 'absolute',
-    bottom: 2,
-    flexDirection: 'row',
-  },
-  morningIndicator: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#FFA500',
-    marginRight: 2,
-  },
-  eveningIndicator: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#4169E1',
   },
   legend: {
     margin: 20,
@@ -443,6 +431,11 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 14,
     color: '#666',
+  },
+  legendIcon: {
+    fontSize: 16,
+    marginRight: 12,
+    width: 20,
   },
   statsPanel: {
     margin: 20,
