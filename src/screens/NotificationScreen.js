@@ -29,6 +29,7 @@ export default function NotificationScreen() {
   const { settings, updateSettings } = useMeditation();
   const [showMorningPicker, setShowMorningPicker] = useState(false);
   const [showEveningPicker, setShowEveningPicker] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [morningTime, setMorningTime] = useState(new Date());
   const [eveningTime, setEveningTime] = useState(new Date());
   const [notificationsEnabled, setNotificationsEnabled] = useState(settings.notificationsEnabled);
@@ -96,8 +97,8 @@ export default function NotificationScreen() {
 
       // Only schedule future notifications
       if (targetDate > new Date()) {
-        const title = getNotificationTitle(type);
-        const body = getRandomNotificationMessage(type);
+        const title = getNotificationTitle(type, settings.language);
+        const body = getRandomNotificationMessage(type, settings.language);
 
         await Notifications.scheduleNotificationAsync({
           identifier: `meditation-reminder-${type}-${day}`,
@@ -164,6 +165,21 @@ export default function NotificationScreen() {
         await scheduleNotification(selectedTime, 'evening');
       }
     }
+  };
+
+  const handleLanguageChange = async (language) => {
+    await updateSettings({ language });
+    setShowLanguagePicker(false);
+    
+    // Reschedule notifications with new language if enabled
+    if (notificationsEnabled) {
+      await scheduleNotification(morningTime, 'morning');
+      await scheduleNotification(eveningTime, 'evening');
+    }
+  };
+
+  const getLanguageDisplayName = (language) => {
+    return language === 'hindi' ? 'हिंदी' : 'English';
   };
 
   const formatTime = (date) => {
@@ -235,6 +251,25 @@ export default function NotificationScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Language Selection */}
+      <View style={styles.settingRow}>
+        <View style={styles.settingInfo}>
+          <Text style={styles.settingLabel}>Quote Language</Text>
+          <Text style={styles.settingDescription}>
+            Choose language for meditation quotes and notifications
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.languageButton}
+          onPress={() => setShowLanguagePicker(true)}
+        >
+          <Text style={styles.languageText}>
+            {getLanguageDisplayName(settings.language)}
+          </Text>
+          <Text style={styles.dropdownArrow}>▼</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* iOS Time Pickers */}
       {Platform.OS === 'ios' && (
         <>
@@ -286,6 +321,61 @@ export default function NotificationScreen() {
             </Modal>
           )}
         </>
+      )}
+
+      {/* Language Picker Modal */}
+      {showLanguagePicker && (
+        <Modal transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.pickerContainer}>
+              <View style={styles.pickerHeader}>
+                <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
+                  <Text style={styles.pickerButton}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.pickerTitle}>Select Language</Text>
+                <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
+                  <Text style={styles.pickerButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.languageOptions}>
+                <TouchableOpacity
+                  style={[
+                    styles.languageOption,
+                    settings.language === 'english' && styles.selectedLanguageOption,
+                  ]}
+                  onPress={() => handleLanguageChange('english')}
+                >
+                  <Text
+                    style={[
+                      styles.languageOptionText,
+                      settings.language === 'english' && styles.selectedLanguageOptionText,
+                    ]}
+                  >
+                    English
+                  </Text>
+                  {settings.language === 'english' && <Text style={styles.checkmark}>✓</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.languageOption,
+                    settings.language === 'hindi' && styles.selectedLanguageOption,
+                  ]}
+                  onPress={() => handleLanguageChange('hindi')}
+                >
+                  <Text
+                    style={[
+                      styles.languageOptionText,
+                      settings.language === 'hindi' && styles.selectedLanguageOptionText,
+                    ]}
+                  >
+                    हिंदी (Hindi)
+                  </Text>
+                  {settings.language === 'hindi' && <Text style={styles.checkmark}>✓</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
 
       {/* Android Time Pickers */}
@@ -450,5 +540,55 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#34495e',
     lineHeight: 20,
+  },
+  languageButton: {
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    minWidth: 120,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  languageText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  dropdownArrow: {
+    color: '#ffffff',
+    fontSize: 12,
+    marginLeft: 8,
+  },
+  languageOptions: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginVertical: 4,
+  },
+  selectedLanguageOption: {
+    backgroundColor: '#e8f4fd',
+  },
+  languageOptionText: {
+    fontSize: 18,
+    color: '#2c3e50',
+    fontWeight: '500',
+  },
+  selectedLanguageOptionText: {
+    color: '#4A90E2',
+    fontWeight: '600',
+  },
+  checkmark: {
+    fontSize: 18,
+    color: '#4A90E2',
+    fontWeight: 'bold',
   },
 });

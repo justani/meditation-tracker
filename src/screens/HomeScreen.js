@@ -11,7 +11,7 @@ export default function HomeScreen() {
   const { userProgress, loading, getSession, markSessionComplete, removeSessionComplete, settings, loadAppData } = useMeditation();
   const today = getTodayDate();
   const todayFormatted = formatDateDisplay(today);
-  const dailyQuote = getDailyQuote();
+  const dailyQuote = getDailyQuote(settings.language);
   
   const morningSession = getSession(today, SESSION_TYPES.MORNING);
   const eveningSession = getSession(today, SESSION_TYPES.EVENING);
@@ -93,7 +93,7 @@ export default function HomeScreen() {
         {isFirstTimeUser && (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsText}>
-              💡 Hold and press each circle to mark your meditation complete or revert if already done
+              💡 Hold and press each circle to mark your meditation complete
             </Text>
           </View>
         )}
