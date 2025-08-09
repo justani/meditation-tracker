@@ -91,18 +91,20 @@ export default function ProgressScreen() {
     
     const dayStyle = [
       styles.calendarDay,
-      !dayData.isCurrentMonth && styles.inactiveDay,
+      !dayData.isCurrentMonth && !hasCurrentSession && styles.inactiveDay,
+      !dayData.isCurrentMonth && hasCurrentSession && styles.inactiveCompletedDay,
       dayData.isToday && styles.todayDay,
       isFutureDate && styles.futureDay,
-      hasCurrentSession && styles.completedDay
+      hasCurrentSession && dayData.isCurrentMonth && styles.completedDay
     ];
     
     const textStyle = [
       styles.dayText,
-      !dayData.isCurrentMonth && styles.inactiveDayText,
+      !dayData.isCurrentMonth && !hasCurrentSession && styles.inactiveDayText,
+      !dayData.isCurrentMonth && hasCurrentSession && styles.inactiveCompletedDayText,
       dayData.isToday && styles.todayText,
       isFutureDate && styles.futureDayText,
-      hasCurrentSession && styles.completedDayText
+      hasCurrentSession && dayData.isCurrentMonth && styles.completedDayText
     ];
     
     return (
@@ -367,11 +369,15 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    marginVertical: 2,
+    borderRadius: 50,
+    marginVertical: 3,
+    marginHorizontal: 0,
   },
   inactiveDay: {
     opacity: 0.3,
+  },
+  inactiveCompletedDay: {
+    backgroundColor: 'rgba(74, 144, 226, 0.4)',
   },
   todayDay: {
     backgroundColor: '#e3f2fd',
@@ -391,6 +397,10 @@ const styles = StyleSheet.create({
   },
   inactiveDayText: {
     color: '#999',
+  },
+  inactiveCompletedDayText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   todayText: {
     color: '#4A90E2',
