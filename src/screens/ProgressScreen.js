@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Ani
 import { useMeditation } from '../context/MeditationContext';
 import { getCalendarGrid, getMonthName, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
+import DurationPickerModal from '../components/DurationPickerModal';
 
 export default function ProgressScreen() {
   const { sessions, loading, markSessionComplete, removeSessionComplete, userProgress } = useMeditation();
@@ -10,6 +11,8 @@ export default function ProgressScreen() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [activeTab, setActiveTab] = useState(SESSION_TYPES.MORNING);
+  const [showDurationPicker, setShowDurationPicker] = useState(false);
+  const [pendingSessionData, setPendingSessionData] = useState(null);
   
   const calendarGrid = getCalendarGrid(selectedYear, selectedMonth);
   const monthName = getMonthName(selectedMonth);
@@ -27,7 +30,8 @@ export default function ProgressScreen() {
     totalSessions: monthSessions.length,
     morningCount: monthSessions.filter(s => s.type === SESSION_TYPES.MORNING).length,
     eveningCount: monthSessions.filter(s => s.type === SESSION_TYPES.EVENING).length,
-    perfectDays: 0
+    perfectDays: 0,
+    totalHours: Math.round((monthSessions.reduce((sum, s) => sum + (s.duration || 0), 0) / 60) * 100) / 100
   };
   
   // Count perfect days (both sessions completed on same day)
@@ -61,8 +65,21 @@ export default function ProgressScreen() {
     if (hasSession) {
       await removeSessionComplete(dateString, activeTab);
     } else {
-      await markSessionComplete(dateString, activeTab);
+      // Show duration picker for new sessions
+      setPendingSessionData({ date: dateString, type: activeTab });
+      setShowDurationPicker(true);
     }
+  };
+
+  const handleDurationConfirm = async (duration) => {
+    if (pendingSessionData) {
+      await markSessionComplete(pendingSessionData.date, pendingSessionData.type, duration);
+      setPendingSessionData(null);
+    }
+  };
+
+  const handleDurationCancel = () => {
+    setPendingSessionData(null);
   };
   
   const navigateMonth = (direction) => {
@@ -201,10 +218,15 @@ export default function ProgressScreen() {
         <View style={styles.statsPanel}>
           <Text style={styles.statsPanelTitle}>Monthly Statistics</Text>
           
-          <View style={styles.statsGrid}>
+          <View style={styles.statsGridThree}>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{monthlyStats.totalSessions}</Text>
               <Text style={styles.statLabel}>Total Sessions</Text>
+            </View>
+            
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{monthlyStats.totalHours}h</Text>
+              <Text style={styles.statLabel}>Total Hours</Text>
             </View>
             
             <View style={styles.statBox}>
@@ -240,6 +262,10 @@ export default function ProgressScreen() {
                 <Text style={styles.globalStatNumber}>{userProgress.longestStreak}</Text>
                 <Text style={styles.globalStatLabel}>Best Streak</Text>
               </View>
+              <View style={styles.globalStatItem}>
+                <Text style={styles.globalStatNumber}>{userProgress.totalHours || 0}h</Text>
+                <Text style={styles.globalStatLabel}>Total Hours</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -259,6 +285,14 @@ export default function ProgressScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <DurationPickerModal
+        visible={showDurationPicker}
+        sessionType={pendingSessionData?.type || SESSION_TYPES.MORNING}
+        onClose={() => setShowDurationPicker(false)}
+        onConfirm={handleDurationConfirm}
+        onCancel={handleDurationCancel}
+      />
     </SafeAreaView>
   );
 }
@@ -465,6 +499,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
+  },
+  statsGridThree: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    flexWrap: 'wrap',
   },
   statBox: {
     flex: 1,

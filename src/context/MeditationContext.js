@@ -323,13 +323,18 @@ export const MeditationProvider = ({ children }) => {
     morningStreak = calculateIndividualStreak(morningSessions);
     eveningStreak = calculateIndividualStreak(eveningSessions);
 
+    // Calculate total hours
+    const totalMinutes = sortedSessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+    const totalHours = Math.round((totalMinutes / 60) * 100) / 100; // Round to 2 decimal places
+
     return {
       currentStreak,
       longestStreak,
       totalSessions,
       morningStreak,
       eveningStreak,
-      lastSessionDate
+      lastSessionDate,
+      totalHours
     };
   };
 
@@ -355,7 +360,7 @@ export const MeditationProvider = ({ children }) => {
   };
 
   // Mark session as complete
-  const markSessionComplete = async (date, type) => {
+  const markSessionComplete = async (date, type, duration = 0) => {
     try {
       const sessionId = `${date}_${type}`;
       const existingSession = state.sessions.find(s => s.date === date && s.type === type);
@@ -363,6 +368,7 @@ export const MeditationProvider = ({ children }) => {
       const session = existingSession || createMeditationSession(date, type);
       session.completed = true;
       session.completedAt = Date.now();
+      session.duration = duration; // Store duration in minutes
       
       // Save to storage
       await addSession(session);

@@ -165,23 +165,24 @@ export default function MeditationCircle({
     setIsLongPressing(false);
     scaleValue.value = withSpring(1);
     
-    // Set final state based on the action that will be performed
     if (completed) {
       // Removing completed session - ring should disappear
       longPressProgress.value = withTiming(0, { duration: 200 });
       // Removal feedback - softer impact
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      // Direct removal for completed sessions
+      if (onLongPress) {
+        onLongPress();
+      }
     } else {
-      // Completing session - ring should be full
-      longPressProgress.value = withTiming(1, { duration: 200 });
-      // Completion feedback - success notification
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    
-    if (onLongPress) {
-      onLongPress();
+      // Show duration picker for new sessions
+      if (onLongPress) {
+        onLongPress(); // This will now trigger the parent to show duration picker
+      }
     }
   };
+
   
   const handlePress = () => {
     if (onPress) {

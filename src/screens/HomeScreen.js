@@ -9,6 +9,7 @@ import { clearAllData } from '../utils/storage';
 
 export default function HomeScreen() {
   const { userProgress, loading, getSession, markSessionComplete, removeSessionComplete, settings, loadAppData } = useMeditation();
+  
   const today = getTodayDate();
   const todayFormatted = formatDateDisplay(today);
   const dailyQuote = getDailyQuote(settings.language);
@@ -27,13 +28,14 @@ export default function HomeScreen() {
         console.error('Failed to remove session');
       }
     } else {
-      // Session is not complete, so mark it as complete
-      const success = await markSessionComplete(today, type);
+      // Mark session complete with default 1 hour (60 minutes)
+      const success = await markSessionComplete(today, type, 60);
       if (!success) {
         console.error('Failed to mark session as complete');
       }
     }
   };
+
 
   // Temporary function for testing - remove in production
   const handleResetData = async () => {
@@ -115,8 +117,13 @@ export default function HomeScreen() {
             <Text style={styles.statNumber}>{userProgress.longestStreak}</Text>
             <Text style={styles.statLabel}>Best Streak</Text>
           </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{userProgress.totalHours || 0}h</Text>
+            <Text style={styles.statLabel}>Total Hours</Text>
+          </View>
         </View>
       </ScrollView>
+
     </SafeAreaView>
   );
 }

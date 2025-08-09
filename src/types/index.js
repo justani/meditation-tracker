@@ -17,7 +17,8 @@ export const UserProgressType = {
   totalSessions: 'number',
   morningStreak: 'number',
   eveningStreak: 'number',
-  lastSessionDate: 'string'
+  lastSessionDate: 'string',
+  totalHours: 'number' // Total meditation time in hours (decimal)
 };
 
 // AppSettings interface
@@ -51,7 +52,8 @@ export const createUserProgress = () => ({
   totalSessions: 0,
   morningStreak: 0,
   eveningStreak: 0,
-  lastSessionDate: null
+  lastSessionDate: null,
+  totalHours: 0
 });
 
 export const createAppSettings = () => ({
