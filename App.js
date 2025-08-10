@@ -8,6 +8,7 @@ import { MeditationProvider } from './src/context/MeditationContext';
 import HomeScreen from './src/screens/HomeScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
+import BackupScreen from './src/screens/BackupScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -27,6 +28,8 @@ export default function App() {
                 iconName = focused ? 'calendar' : 'calendar-outline';
               } else if (route.name === 'Notifications') {
                 iconName = focused ? 'notifications' : 'notifications-outline';
+              } else if (route.name === 'Backup') {
+                iconName = focused ? 'cloud' : 'cloud-outline';
               }
 
               return <Ionicons name={iconName} size={size} color={color} />;
@@ -61,6 +64,13 @@ export default function App() {
             component={NotificationScreen}
             options={{
               title: 'Notifications',
+            }}
+          />
+          <Tab.Screen 
+            name="Backup" 
+            component={BackupScreen}
+            options={{
+              title: 'Backup & Sync',
             }}
           />
         </Tab.Navigator>

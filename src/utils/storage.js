@@ -154,3 +154,20 @@ export const importData = async (data) => {
     return false;
   }
 };
+
+export const saveAllData = async (data) => {
+  try {
+    const { sessions, progress, settings } = data;
+    
+    await Promise.all([
+      sessions ? saveSessions(sessions) : Promise.resolve(),
+      progress ? saveUserProgress(progress) : Promise.resolve(),
+      settings ? saveAppSettings(settings) : Promise.resolve()
+    ]);
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving all data:', error);
+    return false;
+  }
+};

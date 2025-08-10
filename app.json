@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "scheme": "com.meditationtracker.app",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -30,7 +31,9 @@
       "android"
     ],
     "plugins": [
-      "expo-notifications"
+      "expo-notifications",
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
