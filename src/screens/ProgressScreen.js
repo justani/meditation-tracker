@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { useMeditation } from '../context/MeditationContext';
+import { useModal } from '../context/ModalContext';
 import { getCalendarGrid, getMonthName, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
-import DurationPickerModal from '../components/DurationPickerModal';
 
 export default function ProgressScreen() {
   const { sessions, loading, markSessionComplete, removeSessionComplete, userProgress } = useMeditation();
+  const { showModal } = useModal();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [activeTab, setActiveTab] = useState(SESSION_TYPES.MORNING);
-  const [showDurationPicker, setShowDurationPicker] = useState(false);
   const [pendingSessionData, setPendingSessionData] = useState(null);
   
   const calendarGrid = getCalendarGrid(selectedYear, selectedMonth);
@@ -66,14 +66,20 @@ export default function ProgressScreen() {
       await removeSessionComplete(dateString, activeTab);
     } else {
       // Show duration picker for new sessions
-      setPendingSessionData({ date: dateString, type: activeTab });
-      setShowDurationPicker(true);
+      const sessionData = { date: dateString, type: activeTab };
+      setPendingSessionData(sessionData);
+      
+      showModal('durationPicker', {
+        sessionType: activeTab,
+        onConfirm: (duration) => handleDurationConfirm(duration, sessionData),
+        onCancel: handleDurationCancel
+      });
     }
   };
 
-  const handleDurationConfirm = async (duration) => {
-    if (pendingSessionData) {
-      await markSessionComplete(pendingSessionData.date, pendingSessionData.type, duration);
+  const handleDurationConfirm = async (duration, sessionData = pendingSessionData) => {
+    if (sessionData) {
+      await markSessionComplete(sessionData.date, sessionData.type, duration);
       setPendingSessionData(null);
     }
   };
@@ -286,13 +292,6 @@ export default function ProgressScreen() {
         </View>
       </ScrollView>
 
-      <DurationPickerModal
-        visible={showDurationPicker}
-        sessionType={pendingSessionData?.type || SESSION_TYPES.MORNING}
-        onClose={() => setShowDurationPicker(false)}
-        onConfirm={handleDurationConfirm}
-        onCancel={handleDurationCancel}
-      />
     </SafeAreaView>
   );
 }

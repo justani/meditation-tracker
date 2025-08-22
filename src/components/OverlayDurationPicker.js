@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Modal,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { SESSION_TYPES } from '../types';
 
-const DurationPickerModal = ({ visible, onClose, onConfirm, onCancel, sessionType }) => {
-  const [hours, setHours] = useState(0);
-  const [minutes, setMinutes] = useState(10); // Default to 10 minutes
+const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
+
+const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionType }) => {
+  const [hours, setHours] = useState(1);
+  const [minutes, setMinutes] = useState(0); // Default to 60 minutes (1 hour)
+
+  if (!visible) return null;
 
 
   const isMorning = sessionType === SESSION_TYPES.MORNING;
@@ -33,8 +36,8 @@ const DurationPickerModal = ({ visible, onClose, onConfirm, onCancel, sessionTyp
 
   const handleCancel = () => {
     // Reset to defaults
-    setHours(0);
-    setMinutes(10);
+    setHours(1);
+    setMinutes(0);
     if (onCancel) {
       onCancel();
     }
@@ -81,13 +84,8 @@ const DurationPickerModal = ({ visible, onClose, onConfirm, onCancel, sessionTyp
   );
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={handleCancel}
-    >
-      <SafeAreaView style={styles.container}>
+    <View style={styles.overlay}>
+      <View style={styles.modalContainer}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleCancel}>
             <Text style={styles.cancelButton}>Cancel</Text>
@@ -156,15 +154,28 @@ const DurationPickerModal = ({ visible, onClose, onConfirm, onCancel, sessionTyp
             </View>
           </View>
         </View>
-      </SafeAreaView>
-    </Modal>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingTop: 50, // Leave space for status bar
+    zIndex: 9999,
+  },
+  modalContainer: {
     backgroundColor: '#f8f9fa',
+    borderRadius: 20,
+    width: '100%',
+    height: '100%',
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -173,6 +184,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
@@ -253,16 +266,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   pickerScroll: {
-    maxHeight: 150,
+    maxHeight: 140,
   },
   pickerContent: {
     alignItems: 'center',
   },
   pickerOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 8,
     marginVertical: 2,
+    minWidth: 60,
   },
   selectedOption: {
     backgroundColor: '#4A90E2',
@@ -271,7 +285,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     textAlign: 'center',
-    minWidth: 40,
   },
   selectedOptionText: {
     color: '#fff',
@@ -320,4 +333,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DurationPickerModal;
+export default OverlayDurationPicker;

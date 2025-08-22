@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { useMeditation } from '../context/MeditationContext';
+import { useModal } from '../context/ModalContext';
 import { formatDateDisplay, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
 import MeditationCircle from '../components/MeditationCircle';
@@ -9,6 +10,8 @@ import { clearAllData } from '../utils/storage';
 
 export default function HomeScreen() {
   const { userProgress, loading, getSession, markSessionComplete, removeSessionComplete, settings, loadAppData } = useMeditation();
+  const { showModal } = useModal();
+  const [pendingSessionData, setPendingSessionData] = useState(null);
   
   const today = getTodayDate();
   const todayFormatted = formatDateDisplay(today);
@@ -28,12 +31,28 @@ export default function HomeScreen() {
         console.error('Failed to remove session');
       }
     } else {
-      // Mark session complete with default 1 hour (60 minutes)
-      const success = await markSessionComplete(today, type, 60);
-      if (!success) {
-        console.error('Failed to mark session as complete');
-      }
+      // Show duration picker for new sessions
+      const sessionData = { date: today, type };
+      setPendingSessionData(sessionData);
+      
+      showModal('durationPicker', {
+        sessionType: type,
+        onConfirm: (duration) => handleDurationConfirm(duration, sessionData),
+        onCancel: handleDurationCancel
+      });
     }
+  };
+
+
+  const handleDurationConfirm = async (duration, sessionData = pendingSessionData) => {
+    if (sessionData) {
+      await markSessionComplete(sessionData.date, sessionData.type, duration);
+      setPendingSessionData(null);
+    }
+  };
+
+  const handleDurationCancel = () => {
+    setPendingSessionData(null);
   };
 
 
@@ -55,6 +74,7 @@ export default function HomeScreen() {
   }
 
   return (
+    <>
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Date Display */}
@@ -123,8 +143,9 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-
     </SafeAreaView>
+
+    </>
   );
 }
 
