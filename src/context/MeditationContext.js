@@ -469,7 +469,8 @@ export const MeditationProvider = ({ children }) => {
       // Reschedule notifications if notification-related settings changed
       if (newSettings.hasOwnProperty('notificationsEnabled') || 
           newSettings.hasOwnProperty('morningReminderTime') || 
-          newSettings.hasOwnProperty('eveningReminderTime')) {
+          newSettings.hasOwnProperty('eveningReminderTime') ||
+          newSettings.hasOwnProperty('language')) {
         await scheduleNotifications(updatedSettings);
       }
       

@@ -170,12 +170,6 @@ export default function NotificationScreen() {
   const handleLanguageChange = async (language) => {
     await updateSettings({ language });
     setShowLanguagePicker(false);
-    
-    // Reschedule notifications with new language if enabled
-    if (notificationsEnabled) {
-      await scheduleNotification(morningTime, 'morning');
-      await scheduleNotification(eveningTime, 'evening');
-    }
   };
 
   const getLanguageDisplayName = (language) => {
