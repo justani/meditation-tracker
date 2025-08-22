@@ -8,7 +8,11 @@ export class GoogleDriveService {
         throw new Error('No valid access token available');
       }
 
-      const fileName = `meditation-backup-${new Date().toISOString().split('T')[0]}.json`;
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const fileName = `meditation-backup-${year}-${month}-${day}.json`;
       const fileContent = JSON.stringify(backupData, null, 2);
 
       const metadata = {
