@@ -2,7 +2,11 @@
 
 // Get today's date in YYYY-MM-DD format
 export const getTodayDate = () => {
-  return new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Format date for display (e.g., "Monday, January 15, 2024")
@@ -54,7 +58,6 @@ export const getDaysInMonth = (year, month) => {
 // Get calendar grid for a month (includes previous/next month days)
 export const getCalendarGrid = (year, month) => {
   const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
   const startDate = new Date(firstDay);
   
   // Go back to the start of the week
@@ -65,13 +68,18 @@ export const getCalendarGrid = (year, month) => {
   
   // Generate 42 days (6 weeks * 7 days) for consistent calendar grid
   for (let i = 0; i < 42; i++) {
+    const dateYear = currentDate.getFullYear();
+    const dateMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const dateDay = String(currentDate.getDate()).padStart(2, '0');
+    const dateString = `${dateYear}-${dateMonth}-${dateDay}`;
+    
     days.push({
-      date: currentDate.toISOString().split('T')[0],
+      date: dateString,
       day: currentDate.getDate(),
       month: currentDate.getMonth(),
       year: currentDate.getFullYear(),
       isCurrentMonth: currentDate.getMonth() === month,
-      isToday: currentDate.toISOString().split('T')[0] === getTodayDate()
+      isToday: dateString === getTodayDate()
     });
     currentDate.setDate(currentDate.getDate() + 1);
   }
