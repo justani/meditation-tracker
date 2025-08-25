@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { 
@@ -113,6 +114,24 @@ export const MeditationProvider = ({ children }) => {
     }
   }, [state.loading, state.settings]);
 
+  // Listen for app state changes to reschedule notifications when needed
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === 'active') {
+        // Check and reschedule notifications when app becomes active
+        checkAndRescheduleNotifications();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      if (subscription?.remove) {
+        subscription.remove();
+      }
+    };
+  }, []);
+
   const loadAppData = async () => {
     try {
       dispatch({ type: ACTIONS.SET_LOADING, payload: true });
@@ -184,8 +203,8 @@ export const MeditationProvider = ({ children }) => {
             await Notifications.scheduleNotificationAsync({
               identifier: `meditation-reminder-morning-${day}`,
               content: {
-                title: getNotificationTitle('morning'),
-                body: getRandomNotificationMessage('morning'),
+                title: getNotificationTitle('morning', currentSettings.language),
+                body: getRandomNotificationMessage('morning', currentSettings.language),
                 sound: true,
               },
               trigger: {
@@ -207,8 +226,8 @@ export const MeditationProvider = ({ children }) => {
             await Notifications.scheduleNotificationAsync({
               identifier: `meditation-reminder-evening-${day}`,
               content: {
-                title: getNotificationTitle('evening'),
-                body: getRandomNotificationMessage('evening'),
+                title: getNotificationTitle('evening', currentSettings.language),
+                body: getRandomNotificationMessage('evening', currentSettings.language),
                 sound: true,
               },
               trigger: {
@@ -221,6 +240,36 @@ export const MeditationProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error scheduling notifications:', error);
+    }
+  };
+
+  // Check remaining scheduled notifications and reschedule if needed
+  const checkAndRescheduleNotifications = async () => {
+    try {
+      if (!state.settings.notificationsEnabled) return;
+
+      // Get all scheduled notifications
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      
+      // Filter for our meditation notifications
+      const meditationNotifications = scheduledNotifications.filter(notification => 
+        notification.identifier.startsWith('meditation-reminder-')
+      );
+
+      // Calculate days remaining until the latest notification
+      const now = new Date();
+      const futureNotifications = meditationNotifications.filter(notification => {
+        const triggerDate = new Date(notification.trigger.date);
+        return triggerDate > now;
+      });
+
+      // If we have fewer than 7 days of notifications remaining, reschedule
+      if (futureNotifications.length < 14) { // 7 days × 2 notifications per day = 14
+        console.log('Low on notifications, rescheduling...');
+        await scheduleNotifications();
+      }
+    } catch (error) {
+      console.error('Error checking notifications:', error);
     }
   };
 
@@ -362,7 +411,6 @@ export const MeditationProvider = ({ children }) => {
   // Mark session as complete
   const markSessionComplete = async (date, type, duration = 0) => {
     try {
-      const sessionId = `${date}_${type}`;
       const existingSession = state.sessions.find(s => s.date === date && s.type === type);
       
       const session = existingSession || createMeditationSession(date, type);
@@ -496,6 +544,7 @@ export const MeditationProvider = ({ children }) => {
     getSession,
     loadAppData,
     scheduleNotifications,
+    checkAndRescheduleNotifications,
   };
 
   return (

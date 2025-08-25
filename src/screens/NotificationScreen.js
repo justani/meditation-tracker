@@ -14,7 +14,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useMeditation } from '../context/MeditationContext';
-import { getRandomNotificationMessage, getNotificationTitle } from '../utils/notificationMessages';
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -78,43 +77,6 @@ export default function NotificationScreen() {
     return true;
   };
 
-  const scheduleNotification = async (time, type) => {
-    // Cancel existing notifications for this type
-    const today = new Date();
-    for (let day = 0; day < 30; day++) {
-      await Notifications.cancelScheduledNotificationAsync(`meditation-reminder-${type}-${day}`);
-    }
-
-    if (!notificationsEnabled) return;
-
-    // Schedule multiple notifications for variety (next 30 days)
-    const daysToSchedule = 30;
-
-    for (let day = 0; day < daysToSchedule; day++) {
-      const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + day);
-      targetDate.setHours(time.getHours(), time.getMinutes(), 0, 0);
-
-      // Only schedule future notifications
-      if (targetDate > new Date()) {
-        const title = getNotificationTitle(type, settings.language);
-        const body = getRandomNotificationMessage(type, settings.language);
-
-        await Notifications.scheduleNotificationAsync({
-          identifier: `meditation-reminder-${type}-${day}`,
-          content: {
-            title,
-            body,
-            sound: true,
-          },
-          trigger: {
-            type: 'date',
-            date: targetDate,
-          },
-        });
-      }
-    }
-  };
 
   const handleNotificationToggle = async (enabled) => {
     if (enabled) {
@@ -129,17 +91,7 @@ export default function NotificationScreen() {
     // Update settings
     await updateSettings({ notificationsEnabled: enabled });
 
-    if (enabled) {
-      // Schedule both notifications
-      await scheduleNotification(morningTime, 'morning');
-      await scheduleNotification(eveningTime, 'evening');
-    } else {
-      // Cancel all notifications
-      for (let day = 0; day < 30; day++) {
-        await Notifications.cancelScheduledNotificationAsync(`meditation-reminder-morning-${day}`);
-        await Notifications.cancelScheduledNotificationAsync(`meditation-reminder-evening-${day}`);
-      }
-    }
+    // Notification scheduling is handled automatically by the context when settings change
   };
 
   const handleTimeChange = async (type, selectedTime) => {
@@ -155,15 +107,9 @@ export default function NotificationScreen() {
     if (type === 'morning') {
       setMorningTime(selectedTime);
       await updateSettings({ morningReminderTime: timeString });
-      if (notificationsEnabled) {
-        await scheduleNotification(selectedTime, 'morning');
-      }
     } else {
       setEveningTime(selectedTime);
       await updateSettings({ eveningReminderTime: timeString });
-      if (notificationsEnabled) {
-        await scheduleNotification(selectedTime, 'evening');
-      }
     }
   };
 
@@ -284,7 +230,7 @@ export default function NotificationScreen() {
                     value={morningTime}
                     mode="time"
                     display="spinner"
-                    onChange={(event, selectedTime) => handleTimeChange('morning', selectedTime)}
+                    onChange={(_, selectedTime) => handleTimeChange('morning', selectedTime)}
                   />
                 </View>
               </View>
@@ -308,7 +254,7 @@ export default function NotificationScreen() {
                     value={eveningTime}
                     mode="time"
                     display="spinner"
-                    onChange={(event, selectedTime) => handleTimeChange('evening', selectedTime)}
+                    onChange={(_, selectedTime) => handleTimeChange('evening', selectedTime)}
                   />
                 </View>
               </View>
@@ -378,7 +324,7 @@ export default function NotificationScreen() {
           value={morningTime}
           mode="time"
           display="default"
-          onChange={(event, selectedTime) => handleTimeChange('morning', selectedTime)}
+          onChange={(_, selectedTime) => handleTimeChange('morning', selectedTime)}
         />
       )}
 
@@ -387,7 +333,7 @@ export default function NotificationScreen() {
           value={eveningTime}
           mode="time"
           display="default"
-          onChange={(event, selectedTime) => handleTimeChange('evening', selectedTime)}
+          onChange={(_, selectedTime) => handleTimeChange('evening', selectedTime)}
         />
       )}
 
