@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useMeditation } from '../context/MeditationContext';
 import { useModal } from '../context/ModalContext';
 import { getCalendarGrid, getMonthName, getTodayDate } from '../utils/dateHelpers';
@@ -197,7 +198,7 @@ export default function ProgressScreen() {
             style={styles.navButton}
             onPress={() => navigateMonth('prev')}
           >
-            <Text style={styles.navButtonText}>‹</Text>
+            <Ionicons name="chevron-back" size={24} color={COLORS.surface} />
           </TouchableOpacity>
           
           <Text style={styles.monthTitle}>
@@ -208,7 +209,7 @@ export default function ProgressScreen() {
             style={styles.navButton}
             onPress={() => navigateMonth('next')}
           >
-            <Text style={styles.navButtonText}>›</Text>
+            <Ionicons name="chevron-forward" size={24} color={COLORS.surface} />
           </TouchableOpacity>
         </View>
         
@@ -333,11 +334,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.primaryActive,
     borderRadius: 22,
-  },
-  navButtonText: {
-    fontSize: 24,
-    color: COLORS.surface,
-    fontWeight: 'bold',
   },
   monthTitle: {
     fontSize: 20,
