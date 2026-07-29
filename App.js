@@ -3,16 +3,27 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 
 import { MeditationProvider } from './src/context/MeditationContext';
 import { ModalProvider } from './src/context/ModalContext';
 import HomeScreen from './src/screens/HomeScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import TimerScreen from './src/screens/TimerScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import BackupScreen from './src/screens/BackupScreen';
 import RootModalManager from './src/components/RootModalManager';
 
 const Tab = createBottomTabNavigator();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function App() {
   return (
@@ -30,6 +41,8 @@ export default function App() {
                     iconName = focused ? 'home' : 'home-outline';
                   } else if (route.name === 'Progress') {
                     iconName = focused ? 'calendar' : 'calendar-outline';
+                  } else if (route.name === 'Timer') {
+                    iconName = focused ? 'timer' : 'timer-outline';
                   } else if (route.name === 'Notifications') {
                     iconName = focused ? 'notifications' : 'notifications-outline';
                   } else if (route.name === 'Backup') {
@@ -61,6 +74,13 @@ export default function App() {
                 component={ProgressScreen}
                 options={{
                   title: 'Your Progress',
+                }}
+              />
+              <Tab.Screen
+                name="Timer"
+                component={TimerScreen}
+                options={{
+                  title: 'Meditation Timer',
                 }}
               />
               <Tab.Screen 

@@ -15,15 +15,6 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useMeditation } from '../context/MeditationContext';
 
-// Configure how notifications are handled when the app is in the foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
 export default function NotificationScreen() {
   const { settings, updateSettings } = useMeditation();
   const [showMorningPicker, setShowMorningPicker] = useState(false);

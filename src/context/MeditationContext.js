@@ -176,8 +176,16 @@ export const MeditationProvider = ({ children }) => {
 
   const scheduleNotifications = async (settingsOverride = null) => {
     try {
-      // Cancel existing notifications
-      await Notifications.cancelAllScheduledNotificationsAsync();
+      // Cancel only daily reminders. Active meditation timer alarms must survive.
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      const reminderNotifications = scheduledNotifications.filter(({ identifier }) => (
+        identifier.startsWith('meditation-reminder-')
+      ));
+      await Promise.all(
+        reminderNotifications.map(({ identifier }) => (
+          Notifications.cancelScheduledNotificationAsync(identifier)
+        ))
+      );
 
       const currentSettings = settingsOverride || state.settings;
       if (!currentSettings.notificationsEnabled) return;
