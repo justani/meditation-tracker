@@ -117,12 +117,33 @@ export const getRandomNotificationMessage = (type, language = 'english') => {
   return messages[randomIndex];
 };
 
+// Direct reminders shown only when no meditation has been logged for the day.
+export const getIncompleteDayNotificationMessage = (type, language = 'english') => {
+  if (language === 'hindi') {
+    if (type === 'late') {
+      return 'आज आपने अभी तक ध्यान दर्ज नहीं किया है। सोने से पहले कम से कम 10 मिनट ध्यान कर लें।';
+    }
+
+    return 'आज आपने अभी तक ध्यान दर्ज नहीं किया है। दिन समाप्त होने से पहले कुछ समय साधना के लिए निकालें।';
+  }
+
+  if (type === 'late') {
+    return "You still haven't logged meditation today. Do at least 10 minutes before bed.";
+  }
+
+  return "You haven't logged any meditation today. Take time to sit before the day ends.";
+};
+
 // Function to get notification title based on type
 export const getNotificationTitle = (type, language = 'english') => {
   if (language === 'hindi') {
-    return type === 'morning' ? 'प्रातः ध्यान' : 'संध्या ध्यान';
+    if (type === 'morning') return 'प्रातः ध्यान';
+    if (type === 'late') return 'आज 10 मिनट ध्यान करें';
+    return 'आज का ध्यान बाकी है';
   }
-  return type === 'morning' ? 'Morning Meditation' : 'Evening Meditation';
+  if (type === 'morning') return 'Morning Meditation';
+  if (type === 'late') return 'Meditate for 10 Minutes';
+  return 'Meditation Not Logged Today';
 };
 
 // Function to get default notification body (fallback)
@@ -130,11 +151,11 @@ export const getDefaultNotificationBody = (type, language = 'english') => {
   if (language === 'hindi') {
     return type === 'morning' 
       ? 'सजग ध्यान के साथ अपना दिन शुरू करें 🧘‍♂️'
-      : 'संध्या ध्यान के साथ आराम करें 🌙';
+      : 'आज आपने अभी तक ध्यान दर्ज नहीं किया है। दिन समाप्त होने से पहले ध्यान करें।';
   }
   return type === 'morning' 
     ? 'Start your day with mindful meditation 🧘‍♂️'
-    : 'Wind down with evening meditation 🌙';
+    : "You haven't logged any meditation today. Sit before the day ends.";
 };
 
 // Combined quotes pool for homepage display

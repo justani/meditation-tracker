@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -11,7 +11,25 @@ import {
   saveAppSettings 
 } from '../utils/storage';
 import { createMeditationSession, createUserProgress, createAppSettings, SESSION_TYPES } from '../types';
-import { getRandomNotificationMessage, getNotificationTitle } from '../utils/notificationMessages';
+import {
+  getIncompleteDayNotificationMessage,
+  getRandomNotificationMessage,
+  getNotificationTitle,
+} from '../utils/notificationMessages';
+
+const REMINDER_PREFIX = 'meditation-reminder-';
+const INCOMPLETE_DAY_REMINDER_TYPES = ['evening', 'late-22', 'late-23'];
+
+const getLocalDateString = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const hasCompletedSessionForDate = (sessions, date) => (
+  sessions.some(session => session.date === date && session.completed)
+);
 
 // Initial state
 const initialState = {
@@ -100,6 +118,13 @@ const MeditationContext = createContext();
 // Provider component
 export const MeditationProvider = ({ children }) => {
   const [state, dispatch] = useReducer(meditationReducer, initialState);
+  const notificationOperationsRef = useRef(Promise.resolve());
+
+  const queueNotificationOperation = (operation) => {
+    const queuedOperation = notificationOperationsRef.current.then(operation, operation);
+    notificationOperationsRef.current = queuedOperation.catch(() => {});
+    return queuedOperation;
+  };
 
   // Load data on app start
   useEffect(() => {
@@ -111,7 +136,13 @@ export const MeditationProvider = ({ children }) => {
     if (!state.loading && state.settings.notificationsEnabled) {
       initializeNotifications();
     }
-  }, [state.loading, state.settings]);
+  }, [
+    state.loading,
+    state.settings.notificationsEnabled,
+    state.settings.morningReminderTime,
+    state.settings.eveningReminderTime,
+    state.settings.language,
+  ]);
 
   // Listen for app state changes to reschedule notifications when needed
   useEffect(() => {
@@ -129,7 +160,7 @@ export const MeditationProvider = ({ children }) => {
         subscription.remove();
       }
     };
-  }, []);
+  }, [state.settings, state.sessions]);
 
   const loadAppData = async () => {
     try {
@@ -165,12 +196,24 @@ export const MeditationProvider = ({ children }) => {
     }
   };
 
-  const scheduleNotifications = async (settingsOverride = null) => {
+  const cancelIncompleteDayReminders = (date) => queueNotificationOperation(async () => {
+    try {
+      await Promise.all(
+        INCOMPLETE_DAY_REMINDER_TYPES.map(type => (
+          Notifications.cancelScheduledNotificationAsync(`${REMINDER_PREFIX}${type}-${date}`)
+        ))
+      );
+    } catch (error) {
+      console.error('Error cancelling completed-day reminders:', error);
+    }
+  });
+
+  const scheduleNotifications = (settingsOverride = null, sessionsOverride = null) => queueNotificationOperation(async () => {
     try {
       // Cancel only daily reminders. Active meditation timer alarms must survive.
       const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
       const reminderNotifications = scheduledNotifications.filter(({ identifier }) => (
-        identifier.startsWith('meditation-reminder-')
+        identifier.startsWith(REMINDER_PREFIX)
       ));
       await Promise.all(
         reminderNotifications.map(({ identifier }) => (
@@ -179,6 +222,7 @@ export const MeditationProvider = ({ children }) => {
       );
 
       const currentSettings = settingsOverride || state.settings;
+      const currentSessions = sessionsOverride || state.sessions;
       if (!currentSettings.notificationsEnabled) return;
 
       const { morningReminderTime, eveningReminderTime } = currentSettings;
@@ -190,6 +234,8 @@ export const MeditationProvider = ({ children }) => {
       for (let day = 0; day < daysToSchedule; day++) {
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() + day);
+        const targetDateString = getLocalDateString(targetDate);
+        const meditationAlreadyLogged = hasCompletedSessionForDate(currentSessions, targetDateString);
 
         // Schedule morning notification
         if (morningReminderTime) {
@@ -200,7 +246,7 @@ export const MeditationProvider = ({ children }) => {
           // Only schedule future notifications
           if (morningDate > new Date()) {
             await Notifications.scheduleNotificationAsync({
-              identifier: `meditation-reminder-morning-${day}`,
+              identifier: `${REMINDER_PREFIX}morning-${targetDateString}`,
               content: {
                 title: getNotificationTitle('morning', currentSettings.language),
                 body: getRandomNotificationMessage('morning', currentSettings.language),
@@ -215,7 +261,7 @@ export const MeditationProvider = ({ children }) => {
         }
 
         // Schedule evening notification
-        if (eveningReminderTime) {
+        if (eveningReminderTime && !meditationAlreadyLogged) {
           const [eveningHours, eveningMinutes] = eveningReminderTime.split(':').map(Number);
           const eveningDate = new Date(targetDate);
           eveningDate.setHours(eveningHours, eveningMinutes, 0, 0);
@@ -223,10 +269,10 @@ export const MeditationProvider = ({ children }) => {
           // Only schedule future notifications
           if (eveningDate > new Date()) {
             await Notifications.scheduleNotificationAsync({
-              identifier: `meditation-reminder-evening-${day}`,
+              identifier: `${REMINDER_PREFIX}evening-${targetDateString}`,
               content: {
                 title: getNotificationTitle('evening', currentSettings.language),
-                body: getRandomNotificationMessage('evening', currentSettings.language),
+                body: getIncompleteDayNotificationMessage('evening', currentSettings.language),
                 sound: true,
               },
               trigger: {
@@ -236,11 +282,34 @@ export const MeditationProvider = ({ children }) => {
             });
           }
         }
+
+        // Add stronger late reminders only while the day has no completed session.
+        if (!meditationAlreadyLogged) {
+          for (const hour of [22, 23]) {
+            const lateReminderDate = new Date(targetDate);
+            lateReminderDate.setHours(hour, 0, 0, 0);
+
+            if (lateReminderDate > new Date()) {
+              await Notifications.scheduleNotificationAsync({
+                identifier: `${REMINDER_PREFIX}late-${hour}-${targetDateString}`,
+                content: {
+                  title: getNotificationTitle('late', currentSettings.language),
+                  body: getIncompleteDayNotificationMessage('late', currentSettings.language),
+                  sound: true,
+                },
+                trigger: {
+                  type: 'date',
+                  date: lateReminderDate,
+                },
+              });
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error scheduling notifications:', error);
     }
-  };
+  });
 
   // Check remaining scheduled notifications and reschedule if needed
   const checkAndRescheduleNotifications = async () => {
@@ -252,7 +321,7 @@ export const MeditationProvider = ({ children }) => {
       
       // Filter for our meditation notifications
       const meditationNotifications = scheduledNotifications.filter(notification => 
-        notification.identifier.startsWith('meditation-reminder-')
+        notification.identifier.startsWith(REMINDER_PREFIX)
       );
 
       // Calculate days remaining until the latest notification
@@ -262,8 +331,15 @@ export const MeditationProvider = ({ children }) => {
         return triggerDate > now;
       });
 
-      // If we have fewer than 7 days of notifications remaining, reschedule
-      if (futureNotifications.length < 14) { // 7 days × 2 notifications per day = 14
+      const latestTriggerTime = futureNotifications.reduce((latest, notification) => {
+        const triggerTime = new Date(notification.trigger.date).getTime();
+        return Math.max(latest, triggerTime);
+      }, 0);
+      const sevenDaysFromNow = new Date(now);
+      sevenDaysFromNow.setDate(now.getDate() + 7);
+
+      // Replenish reminders when the schedule no longer reaches a week ahead.
+      if (latestTriggerTime < sevenDaysFromNow.getTime()) {
         console.log('Low on notifications, rescheduling...');
         await scheduleNotifications();
       }
@@ -447,6 +523,8 @@ export const MeditationProvider = ({ children }) => {
         type: ACTIONS.UPDATE_PROGRESS,
         payload: newProgress
       });
+
+      await cancelIncompleteDayReminders(date);
       
       return true;
     } catch (error) {
@@ -503,6 +581,8 @@ export const MeditationProvider = ({ children }) => {
         payload: newProgress
       });
 
+      await cancelIncompleteDayReminders(date);
+
       return true;
     } catch (error) {
       console.error('Error recording timer session:', error);
@@ -549,6 +629,8 @@ export const MeditationProvider = ({ children }) => {
         type: ACTIONS.UPDATE_PROGRESS,
         payload: newProgress
       });
+
+      await scheduleNotifications(null, updatedSessions);
       
       console.log('Session removed successfully:', sessionToRemove.id);
       return true;

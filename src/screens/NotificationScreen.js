@@ -169,7 +169,7 @@ export default function NotificationScreen() {
             Evening Meditation
           </Text>
           <Text style={[styles.settingDescription, !notificationsEnabled && styles.disabledText]}>
-            Daily reminder for evening practice
+            Reminder when you have not meditated that day
           </Text>
         </View>
         <TouchableOpacity
@@ -332,10 +332,11 @@ export default function NotificationScreen() {
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>🧘‍♂️ About Your Reminders</Text>
         <Text style={styles.infoText}>
-          • Each notification features inspiring Vipassana wisdom{'\n'}
-          • Messages rotate daily with teachings on anicca, samata, adhiṣṭhāna{'\n'}
+          • Morning notifications feature inspiring Vipassana wisdom{'\n'}
           • Morning messages focus on determination and presence{'\n'}
-          • Evening messages emphasize equanimity and letting go{'\n'}
+          • Evening reminders tell you when no meditation is logged{'\n'}
+          • If the day is still unlogged, 10 PM and 11 PM reminders ask for at least 10 minutes{'\n'}
+          • Logging any meditation cancels the remaining reminders for that day{'\n'}
           • Notifications scheduled for the next 30 days with variety
         </Text>
       </View>
