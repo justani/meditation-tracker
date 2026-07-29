@@ -157,7 +157,6 @@ export default function TimerScreen({ route }) {
 
     if (
       !timerRestored
-      || activeTimer
       || !requestId
       || handledNotificationStartRef.current === requestId
     ) {
@@ -165,6 +164,8 @@ export default function TimerScreen({ route }) {
     }
 
     handledNotificationStartRef.current = requestId;
+    if (activeTimer) return;
+
     handleStart(requestedDuration);
   }, [
     activeTimer,
