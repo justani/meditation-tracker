@@ -605,12 +605,14 @@ export const MeditationProvider = ({ children }) => {
   };
 
   // Remove session
-  const removeSessionComplete = async (date, type) => {
+  const removeSessionComplete = async (date, type, sessionId = null) => {
     try {
-      const sessionToRemove = state.sessions.find(s => s.date === date && s.type === type);
+      const sessionToRemove = sessionId
+        ? state.sessions.find(session => session.id === sessionId)
+        : state.sessions.find(session => session.date === date && session.type === type);
       
       if (!sessionToRemove) {
-        console.log('Session not found for removal:', { date, type });
+        console.log('Session not found for removal:', { date, type, sessionId });
         return false;
       }
       

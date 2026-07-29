@@ -6,28 +6,61 @@ import { formatDateDisplay, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
 import MeditationCircle from '../components/MeditationCircle';
 import { getDailyQuote } from '../utils/notificationMessages';
+import { formatMeditationTime, getSessionPeriod } from '../utils/sessionHelpers';
 import { clearAllData } from '../utils/storage';
 import { COLORS } from '../theme/colors';
 
 export default function HomeScreen() {
-  const { userProgress, loading, getSession, markSessionComplete, removeSessionComplete, settings, loadAppData } = useMeditation();
+  const {
+    sessions,
+    userProgress,
+    loading,
+    markSessionComplete,
+    removeSessionComplete,
+    settings,
+    loadAppData,
+  } = useMeditation();
   const { showModal } = useModal();
   const [pendingSessionData, setPendingSessionData] = useState(null);
   
   const today = getTodayDate();
   const todayFormatted = formatDateDisplay(today);
   const dailyQuote = getDailyQuote(settings.language);
-  
-  const morningSession = getSession(today, SESSION_TYPES.MORNING);
-  const eveningSession = getSession(today, SESSION_TYPES.EVENING);
+
+  const todaySessions = sessions.filter(
+    session => session.date === today && session.completed
+  );
+  const getTodaySessionForPeriod = (period) => (
+    todaySessions.find(session => session.type === period)
+    || todaySessions.find(session => getSessionPeriod(session) === period)
+  );
+  const morningSession = getTodaySessionForPeriod(SESSION_TYPES.MORNING);
+  const eveningSession = getTodaySessionForPeriod(SESSION_TYPES.EVENING);
+  const todayMinutes = todaySessions.reduce(
+    (sum, session) => sum + (session.duration || 0),
+    0
+  );
+  const lifetimeMinutes = sessions
+    .filter(session => session.completed)
+    .reduce((sum, session) => sum + (session.duration || 0), 0);
+  const hasMeditatedToday = todaySessions.length > 0;
+  const streakMessage = userProgress.currentStreak === 0
+    ? 'Begin a new streak today'
+    : hasMeditatedToday
+      ? 'Your streak is safe for today'
+      : 'Meditate today to keep it going';
+  const todaySummary = hasMeditatedToday
+    ? `${formatMeditationTime(todayMinutes)} · ${todaySessions.length} ${todaySessions.length === 1 ? 'session' : 'sessions'}`
+    : 'No meditation recorded yet';
+  const periodSummary = `Morning ${morningSession ? 'completed' : 'available'} · Evening ${eveningSession ? 'completed' : 'available'}`;
   const isFirstTimeUser = settings.isFirstTimeUser;
   
   const handleSessionToggle = async (type) => {
-    const session = getSession(today, type);
+    const session = getTodaySessionForPeriod(type);
     
     if (session?.completed) {
       // Session is already complete, so remove it
-      const success = await removeSessionComplete(today, type);
+      const success = await removeSessionComplete(today, session.type, session.id);
       if (!success) {
         console.error('Failed to remove session');
       }
@@ -91,8 +124,16 @@ export default function HomeScreen() {
         {/* Streak Counter */}
         <View style={styles.streakContainer}>
           <Text style={styles.streakLabel}>Current Streak</Text>
-          <Text style={styles.streakNumber}>{userProgress.currentStreak}</Text>
+          <Text
+            style={styles.streakNumber}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {userProgress.currentStreak}
+          </Text>
           <Text style={styles.streakDays}>days</Text>
+          <Text style={styles.streakMessage}>{streakMessage}</Text>
         </View>
 
         {/* Meditation Circles */}
@@ -121,6 +162,13 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Today's Practice */}
+        <View style={styles.todayPracticeContainer}>
+          <Text style={styles.sectionTitle}>Today's Practice</Text>
+          <Text style={styles.todaySummary}>{todaySummary}</Text>
+          <Text style={styles.periodSummary}>{periodSummary}</Text>
+        </View>
+
         {/* Temporary reset button for testing - remove in production */}
         {__DEV__ && (
           <TouchableOpacity style={styles.resetButton} onPress={handleResetData}>
@@ -128,19 +176,27 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Quick Stats */}
+        {/* Lifetime Progress */}
+        <Text style={styles.sectionTitle}>Your Journey</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userProgress.totalSessions}</Text>
-            <Text style={styles.statLabel}>Total Sessions</Text>
+            <Text style={styles.statLabel}>Sessions</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userProgress.longestStreak}</Text>
             <Text style={styles.statLabel}>Best Streak</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{userProgress.totalHours || 0}h</Text>
-            <Text style={styles.statLabel}>Total Hours</Text>
+            <Text
+              style={styles.statNumber}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {formatMeditationTime(lifetimeMinutes)}
+            </Text>
+            <Text style={styles.statLabel}>Total Time</Text>
           </View>
         </View>
       </ScrollView>
@@ -174,7 +230,7 @@ const styles = StyleSheet.create({
   },
   dateContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 18,
   },
   dateText: {
     fontSize: 18,
@@ -182,31 +238,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   quoteContainer: {
-    backgroundColor: COLORS.surface,
-    marginBottom: 25,
-    padding: 20,
-    borderRadius: 15,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primaryActive,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    backgroundColor: COLORS.primaryWash,
+    marginBottom: 22,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderRadius: 12,
   },
   quoteText: {
-    fontSize: 16,
-    color: COLORS.text,
-    lineHeight: 24,
+    fontSize: 15,
+    color: COLORS.textMuted,
+    lineHeight: 22,
     fontStyle: 'italic',
     textAlign: 'center',
   },
   streakContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
     backgroundColor: COLORS.surface,
     padding: 25,
     borderRadius: 15,
@@ -225,21 +272,53 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   streakNumber: {
+    width: 140,
     fontSize: 48,
     fontWeight: 'bold',
     color: COLORS.primaryActive,
-    lineHeight: 56,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   streakDays: {
     fontSize: 16,
     color: COLORS.textMuted,
     marginTop: 4,
   },
+  streakMessage: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primaryActive,
+    marginTop: 12,
+  },
   circlesContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: 40,
     paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  todayPracticeContainer: {
+    paddingVertical: 18,
+    marginBottom: 25,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: COLORS.border,
+  },
+  todaySummary: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.primaryActive,
+    marginBottom: 6,
+  },
+  periodSummary: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: COLORS.textMuted,
   },
   instructionsContainer: {
     backgroundColor: COLORS.primarySoft,
@@ -284,13 +363,18 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   statItem: {
+    flex: 1,
     alignItems: 'center',
+    paddingHorizontal: 4,
   },
   statNumber: {
+    width: '100%',
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.primaryActive,
     marginBottom: 4,
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
   statLabel: {
     fontSize: 12,
