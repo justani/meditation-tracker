@@ -4,6 +4,7 @@ declare class MeditationTimerModule extends NativeModule {
   scheduleAsync(timestamps: number[]): Promise<void>;
   scheduleTestAsync(): Promise<void>;
   cancelAsync(): Promise<void>;
+  reconcileAsync(): Promise<number[]>;
   canScheduleExactAlarmsAsync(): Promise<boolean>;
 }
 

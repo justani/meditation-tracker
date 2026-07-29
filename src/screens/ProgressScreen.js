@@ -44,7 +44,10 @@ export default function ProgressScreen() {
   });
   
   monthlyStats.perfectDays = Object.values(sessionsByDate).filter(
-    daySessions => daySessions.length === 2
+    daySessions => (
+      daySessions.some(session => session.type === SESSION_TYPES.MORNING)
+      && daySessions.some(session => session.type === SESSION_TYPES.EVENING)
+    )
   ).length;
   
   const getSessionsForDate = (date) => {

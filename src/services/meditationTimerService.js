@@ -23,6 +23,13 @@ const createTimerNotificationId = (timerId, checkpointNumber) => (
   `${TIMER_NOTIFICATION_PREFIX}${timerId}-${checkpointNumber}`
 );
 
+const createTimerTimestamps = (endsAt) => Array.from(
+  { length: CHECKPOINT_COUNT + 1 },
+  (_, checkpointNumber) => (
+    endsAt + checkpointNumber * CHECKPOINT_INTERVAL_MINUTES * 60 * 1000
+  )
+);
+
 export const configureTimerNotifications = async () => {
   if (Platform.OS === 'android') {
     await Promise.all(
@@ -49,6 +56,37 @@ export const loadActiveMeditationTimer = async () => {
     console.error('Error loading meditation timer:', error);
     return null;
   }
+};
+
+export const reconcileMeditationTimer = async (timer) => {
+  if (Platform.OS !== 'android' || !timer?.endsAt) return true;
+
+  const canSchedule = await MeditationTimerModule.canScheduleExactAlarmsAsync();
+  if (!canSchedule) return false;
+
+  const nativeTimestamps = await MeditationTimerModule.reconcileAsync();
+  if (nativeTimestamps.length) {
+    const completedCheckpointCount = CHECKPOINT_COUNT + 1 - nativeTimestamps.length;
+    const correctedEndsAt = nativeTimestamps[0]
+      - completedCheckpointCount * CHECKPOINT_INTERVAL_MINUTES * 60 * 1000;
+    if (correctedEndsAt !== timer.endsAt) {
+      const wallClockCorrection = correctedEndsAt - timer.endsAt;
+      timer.startedAt = Number.isFinite(timer.startedAt)
+        ? timer.startedAt + wallClockCorrection
+        : correctedEndsAt - timer.durationMinutes * 60 * 1000;
+      timer.endsAt = correctedEndsAt;
+      await saveActiveMeditationTimer(timer);
+    }
+    return true;
+  }
+
+  const futureTimestamps = createTimerTimestamps(timer.endsAt)
+    .filter(timestamp => timestamp > Date.now());
+
+  if (!futureTimestamps.length) return true;
+
+  await MeditationTimerModule.scheduleAsync(futureTimestamps);
+  return true;
 };
 
 const saveActiveMeditationTimer = async (timer) => {
@@ -130,12 +168,7 @@ export const startMeditationTimer = async (durationMinutes) => {
 
   try {
     if (Platform.OS === 'android') {
-      const timestamps = Array.from(
-        { length: CHECKPOINT_COUNT + 1 },
-        (_, checkpointNumber) => (
-          endsAt + checkpointNumber * CHECKPOINT_INTERVAL_MINUTES * 60 * 1000
-        )
-      );
+      const timestamps = createTimerTimestamps(endsAt);
       await MeditationTimerModule.scheduleAsync(timestamps);
     } else {
       await scheduleTimerNotification({

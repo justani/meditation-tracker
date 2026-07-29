@@ -4,7 +4,7 @@
 export const MeditationSessionType = {
   id: 'string',
   date: 'string', // YYYY-MM-DD format
-  type: 'string', // 'morning' | 'evening'
+  type: 'string', // 'morning' | 'evening' | 'timer'
   completed: 'boolean',
   completedAt: 'number', // timestamp
   duration: 'number' // in minutes (optional for future)
@@ -33,7 +33,8 @@ export const AppSettingsType = {
 // Session types
 export const SESSION_TYPES = {
   MORNING: 'morning',
-  EVENING: 'evening'
+  EVENING: 'evening',
+  TIMER: 'timer'
 };
 
 // Helper functions for type checking

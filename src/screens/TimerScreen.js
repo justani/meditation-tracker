@@ -13,10 +13,12 @@ import {
 } from 'react-native';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as Haptics from 'expo-haptics';
+import { useMeditation } from '../context/MeditationContext';
 import {
   CHECKPOINT_WINDOW_MINUTES,
   finishMeditationTimer,
   loadActiveMeditationTimer,
+  reconcileMeditationTimer,
   startMeditationTimer,
   testTimerChime,
   TIMER_DURATIONS,
@@ -26,21 +28,54 @@ const ANDROID_EXACT_ALARM_SETTINGS = 'android.settings.REQUEST_SCHEDULE_EXACT_AL
 const ANDROID_PACKAGE = 'com.meditationtracker.app';
 
 const formatTime = (milliseconds) => {
-  const absoluteSeconds = Math.floor(Math.abs(milliseconds) / 1000);
-  const minutes = Math.floor(absoluteSeconds / 60);
+  const absoluteSeconds = milliseconds > 0
+    ? Math.ceil(milliseconds / 1000)
+    : Math.floor(Math.abs(milliseconds) / 1000);
+  const hours = Math.floor(absoluteSeconds / 3600);
+  const minutes = Math.floor((absoluteSeconds % 3600) / 60);
   const seconds = absoluteSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  return hours > 0
+    ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const formatAccessibilityTime = (milliseconds, isOvertime) => {
+  const absoluteSeconds = milliseconds > 0
+    ? Math.ceil(milliseconds / 1000)
+    : Math.floor(Math.abs(milliseconds) / 1000);
+  const hours = Math.floor(absoluteSeconds / 3600);
+  const minutes = Math.floor((absoluteSeconds % 3600) / 60);
+  const seconds = absoluteSeconds % 60;
+  const parts = [];
+  if (hours) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+  if (minutes) parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  if (!hours && seconds) parts.push(`${seconds} ${seconds === 1 ? 'second' : 'seconds'}`);
+  if (!parts.length) parts.push('0 seconds');
+  return `${parts.join(' ')} ${isOvertime ? 'overtime' : 'remaining'}`;
 };
 
 export default function TimerScreen() {
+  const { recordTimerSession } = useMeditation();
   const [selectedDuration, setSelectedDuration] = useState(20);
   const [activeTimer, setActiveTimer] = useState(null);
   const [now, setNow] = useState(Date.now());
   const [isStarting, setIsStarting] = useState(false);
   const [isTestingChime, setIsTestingChime] = useState(false);
+  const [alarmAccessAvailable, setAlarmAccessAvailable] = useState(true);
 
   const restoreTimer = useCallback(async () => {
     const storedTimer = await loadActiveMeditationTimer();
+    if (storedTimer) {
+      try {
+        const reconciled = await reconcileMeditationTimer(storedTimer);
+        setAlarmAccessAvailable(reconciled);
+      } catch (error) {
+        console.error('Error restoring meditation timer alarms:', error);
+        setAlarmAccessAvailable(Platform.OS !== 'android');
+      }
+    } else {
+      setAlarmAccessAvailable(true);
+    }
     setActiveTimer(storedTimer);
     setNow(Date.now());
   }, []);
@@ -82,6 +117,7 @@ export default function TimerScreen() {
     try {
       const timer = await startMeditationTimer(selectedDuration);
       setActiveTimer(timer);
+      setAlarmAccessAvailable(true);
       setNow(Date.now());
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
@@ -130,11 +166,21 @@ export default function TimerScreen() {
   };
 
   const handleFinish = () => {
-    const elapsedMinutes = Math.max(1, Math.round((Date.now() - activeTimer.startedAt) / 60000));
+    const latestRecordedAt = Math.min(
+      Date.now(),
+      activeTimer.endsAt + CHECKPOINT_WINDOW_MINUTES * 60 * 1000
+    );
+    const elapsedMinutes = Math.max(
+      1,
+      Math.round((latestRecordedAt - activeTimer.startedAt) / 60000)
+    );
+    const isStale = Date.now() > latestRecordedAt;
 
     Alert.alert(
       'Finish meditation?',
-      `You meditated for about ${elapsedMinutes} minutes. Future checkpoint chimes will be cancelled.`,
+      isStale
+        ? `The checkpoint window ended earlier, so this will save at most ${elapsedMinutes} minutes rather than counting unattended time.`
+        : `You meditated for about ${elapsedMinutes} minutes. Future checkpoint chimes will be cancelled.`,
       [
         { text: 'Keep meditating', style: 'cancel' },
         {
@@ -142,6 +188,27 @@ export default function TimerScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              const completedAt = Math.min(
+                Date.now(),
+                activeTimer.endsAt + CHECKPOINT_WINDOW_MINUTES * 60 * 1000
+              );
+              const duration = Math.max(
+                1,
+                Math.round((completedAt - activeTimer.startedAt) / 60000)
+              );
+              const saved = await recordTimerSession({
+                timerId: activeTimer.id,
+                startedAt: activeTimer.startedAt,
+                completedAt,
+                duration,
+              });
+              if (!saved) {
+                Alert.alert(
+                  'Could not save meditation',
+                  'Your timer is still active. Please try finishing again.'
+                );
+                return;
+              }
               await finishMeditationTimer();
               setActiveTimer(null);
             } catch (error) {
@@ -167,7 +234,13 @@ export default function TimerScreen() {
             <Text style={styles.timerEyebrow}>
               {isOvertime ? 'CONTINUING IN SILENCE' : 'MEDITATION IN PROGRESS'}
             </Text>
-            <Text style={[styles.timerValue, isOvertime && styles.overtimeValue]}>
+            <Text
+              accessibilityLabel={formatAccessibilityTime(remainingMilliseconds, isOvertime)}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+              numberOfLines={1}
+              style={[styles.timerValue, isOvertime && styles.overtimeValue]}
+            >
               {isOvertime ? '+' : ''}{formatTime(remainingMilliseconds)}
             </Text>
             <Text style={styles.timerCaption}>
@@ -177,6 +250,18 @@ export default function TimerScreen() {
                   : 'A short chime sounds every five minutes.'
                 : `${activeTimer.durationMinutes}-minute meditation`}
             </Text>
+
+            {!alarmAccessAvailable && (
+              <View style={styles.activeAlarmWarning}>
+                <Text style={styles.activeAlarmWarningTitle}>Alarm access required</Text>
+                <Text style={styles.activeAlarmWarningText}>
+                  Checkpoint chimes are paused until “Alarms & reminders” access is restored.
+                </Text>
+                <Pressable accessibilityRole="button" onPress={openAlarmSettings}>
+                  <Text style={styles.activeAlarmWarningLink}>Open alarm settings</Text>
+                </Pressable>
+              </View>
+            )}
 
             <Pressable
               accessibilityRole="button"
@@ -195,12 +280,17 @@ export default function TimerScreen() {
               </Text>
             </View>
 
-            <View style={styles.durationGrid}>
+            <View
+              accessibilityLabel="Meditation duration"
+              accessibilityRole="radiogroup"
+              style={styles.durationGrid}
+            >
               {TIMER_DURATIONS.map((duration) => {
                 const isSelected = duration === selectedDuration;
                 return (
                   <Pressable
-                    accessibilityRole="button"
+                    accessibilityLabel={`${duration} minutes`}
+                    accessibilityRole="radio"
                     accessibilityState={{ selected: isSelected }}
                     key={duration}
                     style={({ pressed }) => [
@@ -414,6 +504,29 @@ const styles = StyleSheet.create({
     color: '#d5e4df',
     fontSize: 16,
     textAlign: 'center',
+  },
+  activeAlarmWarning: {
+    width: '100%',
+    backgroundColor: '#fff4dc',
+    borderRadius: 14,
+    padding: 15,
+    gap: 5,
+  },
+  activeAlarmWarningTitle: {
+    color: '#6b4700',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  activeAlarmWarningText: {
+    color: '#6b5528',
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  activeAlarmWarningLink: {
+    color: '#8a5700',
+    fontSize: 14,
+    fontWeight: '700',
+    paddingTop: 4,
   },
   finishButton: {
     marginTop: 34,

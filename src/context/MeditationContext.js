@@ -4,7 +4,6 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { 
   loadSessions, 
-  loadUserProgress, 
   loadAppSettings,
   addSession,
   removeSession,
@@ -136,11 +135,12 @@ export const MeditationProvider = ({ children }) => {
     try {
       dispatch({ type: ACTIONS.SET_LOADING, payload: true });
       
-      const [sessions, progress, settings] = await Promise.all([
+      const [sessions, settings] = await Promise.all([
         loadSessions(),
-        loadUserProgress(),
         loadAppSettings()
       ]);
+      const progress = calculateStreaks(sessions);
+      await saveUserProgress(progress);
       
       dispatch({
         type: ACTIONS.LOAD_DATA_SUCCESS,
@@ -156,15 +156,6 @@ export const MeditationProvider = ({ children }) => {
     if (!Device.isDevice) return;
 
     try {
-      // Configure notification handler
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: false,
-        }),
-      });
-
       // Check if notifications are enabled and schedule them
       if (state.settings.notificationsEnabled) {
         await scheduleNotifications();
@@ -464,6 +455,61 @@ export const MeditationProvider = ({ children }) => {
     }
   };
 
+  const recordTimerSession = async ({ timerId, startedAt, completedAt, duration }) => {
+    try {
+      const sessionId = `timer_${timerId}`;
+      if (state.sessions.some(session => session.id === sessionId)) return true;
+
+      const startedDate = new Date(startedAt);
+      const year = startedDate.getFullYear();
+      const month = String(startedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(startedDate.getDate()).padStart(2, '0');
+      const date = `${year}-${month}-${day}`;
+      const session = {
+        ...createMeditationSession(date, SESSION_TYPES.TIMER),
+        id: sessionId,
+        completed: true,
+        completedAt,
+        startedAt,
+        duration,
+      };
+
+      const saved = await addSession(session);
+      if (!saved) return false;
+
+      dispatch({
+        type: ACTIONS.MARK_SESSION_COMPLETE,
+        payload: session
+      });
+
+      if (state.settings.isFirstTimeUser) {
+        await updateSettings({ isFirstTimeUser: false });
+      }
+
+      const updatedSessions = [...state.sessions];
+      const index = updatedSessions.findIndex(s => s.id === session.id);
+      if (index >= 0) {
+        updatedSessions[index] = session;
+      } else {
+        updatedSessions.push(session);
+      }
+
+      const newProgress = calculateStreaks(updatedSessions);
+      const progressSaved = await saveUserProgress(newProgress);
+      if (!progressSaved) return false;
+
+      dispatch({
+        type: ACTIONS.UPDATE_PROGRESS,
+        payload: newProgress
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error recording timer session:', error);
+      return false;
+    }
+  };
+
   // Get today's sessions
   const getTodaysSessions = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -546,6 +592,7 @@ export const MeditationProvider = ({ children }) => {
     
     // Actions
     markSessionComplete,
+    recordTimerSession,
     removeSessionComplete,
     updateSettings,
     getTodaysSessions,

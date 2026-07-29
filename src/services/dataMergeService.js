@@ -1,3 +1,5 @@
+import { SESSION_TYPES } from '../types';
+
 export class DataMergeService {
   static mergeSessions(localSessions, backupSessions) {
     const mergeResult = {
@@ -12,7 +14,7 @@ export class DataMergeService {
 
     // First pass: Add all local sessions to the map
     localSessions.forEach(session => {
-      const key = `${session.date}_${session.type}`;
+      const key = this.getSessionKey(session);
       sessionMap.set(key, {
         session,
         source: 'local',
@@ -22,7 +24,7 @@ export class DataMergeService {
 
     // Second pass: Process backup sessions
     backupSessions.forEach(backupSession => {
-      const key = `${backupSession.date}_${backupSession.type}`;
+      const key = this.getSessionKey(backupSession);
       
       if (sessionMap.has(key)) {
         // Conflict detected
@@ -56,6 +58,12 @@ export class DataMergeService {
     mergeResult.conflicts = conflicts;
 
     return mergeResult;
+  }
+
+  static getSessionKey(session) {
+    return session.type === SESSION_TYPES.TIMER
+      ? session.id
+      : `${session.date}_${session.type}`;
   }
 
   static resolveSessionConflict(localSession, backupSession) {

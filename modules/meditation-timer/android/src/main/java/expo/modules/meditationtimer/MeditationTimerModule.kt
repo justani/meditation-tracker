@@ -39,6 +39,17 @@ class MeditationTimerModule : Module() {
       MeditationAlarmScheduler.cancelAll(requireContext())
     }
 
+    AsyncFunction("reconcileAsync") {
+      val context = requireContext()
+      val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+        throw ExactAlarmPermissionException()
+      }
+
+      MeditationAlarmScheduler.reconcileActive(context).map(Long::toDouble)
+    }
+
     AsyncFunction("canScheduleExactAlarmsAsync") {
       val context = requireContext()
       val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
