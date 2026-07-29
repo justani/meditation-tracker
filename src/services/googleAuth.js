@@ -14,9 +14,6 @@ export class GoogleAuthService {
   static clientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
   
   static scopes = [
-    'openid',
-    'profile', 
-    'email',
     'https://www.googleapis.com/auth/drive.appdata'
   ];
 
@@ -53,8 +50,7 @@ export class GoogleAuthService {
         
         return {
           success: true,
-          tokens: tokenResult,
-          user: await this.getUserInfo(tokenResult.accessToken)
+          tokens: tokenResult
         };
       }
 
@@ -62,23 +58,6 @@ export class GoogleAuthService {
     } catch (error) {
       console.error('Authentication error:', error);
       return { success: false, error: error.message };
-    }
-  }
-
-  static async getUserInfo(accessToken) {
-    try {
-      const response = await fetch(
-        'https://www.googleapis.com/oauth2/v2/userinfo',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to get user info:', error);
-      return null;
     }
   }
 
