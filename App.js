@@ -72,7 +72,7 @@ export default function App() {
       <ModalProvider>
         <>
           <NavigationContainer>
-            <StatusBar style="light" backgroundColor={COLORS.primary} />
+            <StatusBar style="light" />
             <Tab.Navigator
               screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
