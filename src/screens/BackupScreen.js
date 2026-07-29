@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  AppState,
   SafeAreaView,
   RefreshControl
 } from 'react-native';
@@ -26,10 +27,31 @@ const BackupScreen = () => {
   const [mergePreview, setMergePreview] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedBackupId, setSelectedBackupId] = useState(null);
+  const [lastBackupAt, setLastBackupAt] = useState(null);
 
   useEffect(() => {
     checkAuthStatus();
+    loadBackupState();
+
+    const unsubscribe = BackupService.subscribeToBackupState(backupState => {
+      setLastBackupAt(backupState.lastSuccessfulBackupAt);
+    });
+    const appStateSubscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        loadBackupState();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      appStateSubscription.remove();
+    };
   }, []);
+
+  const loadBackupState = async () => {
+    const backupState = await BackupService.getBackupState();
+    setLastBackupAt(backupState.lastSuccessfulBackupAt);
+  };
 
   const checkAuthStatus = async () => {
     try {
@@ -112,8 +134,12 @@ const BackupScreen = () => {
     try {
       const result = await BackupService.uploadBackup();
       if (result.success) {
-        await loadBackups();
-        Alert.alert('Success', `Backup created successfully: ${result.fileName}`);
+        if (result.skipped) {
+          Alert.alert('Up to Date', 'Your meditation data has not changed since the last backup.');
+        } else {
+          await loadBackups();
+          Alert.alert('Success', `Backup created successfully: ${result.fileName}`);
+        }
       } else {
         Alert.alert('Error', 'Failed to create backup: ' + result.error);
       }
@@ -282,7 +308,14 @@ const BackupScreen = () => {
             <View style={styles.authenticatedSection}>
               <View style={styles.statusContainer}>
                 <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
-                <Text style={styles.statusText}>Connected to Google Drive</Text>
+                <View style={styles.statusTextContainer}>
+                  <Text style={styles.statusText}>Connected to Google Drive</Text>
+                  <Text style={styles.lastBackupText}>
+                    {lastBackupAt
+                      ? `Last backed up ${formatDate(lastBackupAt)}`
+                      : 'No successful backups yet'}
+                  </Text>
+                </View>
               </View>
 
               <View style={styles.buttonRow}>
@@ -360,6 +393,16 @@ const BackupScreen = () => {
             <View style={styles.infoItem}>
               <Ionicons name="sync" size={16} color={COLORS.success} />
               <Text style={styles.infoText}>Restore your data on any device by signing in</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Ionicons name="refresh" size={16} color={COLORS.success} />
+              <Text style={styles.infoText}>
+                Changed data is backed up automatically every 2 days when you open the app
+              </Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Ionicons name="albums" size={16} color={COLORS.success} />
+              <Text style={styles.infoText}>Your latest 20 backups are kept</Text>
             </View>
           </View>
         </View>
@@ -458,6 +501,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.success,
     fontWeight: '500',
+  },
+  statusTextContainer: {
+    flex: 1,
+  },
+  lastBackupText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
   buttonRow: {
     flexDirection: 'row',

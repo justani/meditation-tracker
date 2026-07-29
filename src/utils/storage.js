@@ -5,7 +5,13 @@ import { createUserProgress, createAppSettings } from '../types';
 const KEYS = {
   SESSIONS: 'meditation_sessions',
   PROGRESS: 'user_progress',
-  SETTINGS: 'app_settings'
+  SETTINGS: 'app_settings',
+  BACKUP_STATE: 'backup_state'
+};
+
+const DEFAULT_BACKUP_STATE = {
+  lastSuccessfulBackupAt: null,
+  lastContentSignature: null
 };
 
 // Meditation Sessions
@@ -110,6 +116,29 @@ export const loadAppSettings = async () => {
   } catch (error) {
     console.error('Error loading app settings:', error);
     return createAppSettings();
+  }
+};
+
+// Backup Metadata
+export const saveBackupState = async (backupState) => {
+  try {
+    await AsyncStorage.setItem(KEYS.BACKUP_STATE, JSON.stringify(backupState));
+    return true;
+  } catch (error) {
+    console.error('Error saving backup state:', error);
+    return false;
+  }
+};
+
+export const loadBackupState = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(KEYS.BACKUP_STATE);
+    return jsonValue != null
+      ? { ...DEFAULT_BACKUP_STATE, ...JSON.parse(jsonValue) }
+      : { ...DEFAULT_BACKUP_STATE };
+  } catch (error) {
+    console.error('Error loading backup state:', error);
+    return { ...DEFAULT_BACKUP_STATE };
   }
 };
 

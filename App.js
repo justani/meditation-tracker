@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 
-import { MeditationProvider } from './src/context/MeditationContext';
+import { MeditationProvider, useMeditation } from './src/context/MeditationContext';
 import { ModalProvider } from './src/context/ModalContext';
 import HomeScreen from './src/screens/HomeScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
@@ -13,6 +14,7 @@ import TimerScreen from './src/screens/TimerScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import BackupScreen from './src/screens/BackupScreen';
 import RootModalManager from './src/components/RootModalManager';
+import { BackupService } from './src/services/backupService';
 import { COLORS } from './src/theme/colors';
 
 const Tab = createBottomTabNavigator();
@@ -26,9 +28,47 @@ Notifications.setNotificationHandler({
   }),
 });
 
+const AutomaticBackupManager = () => {
+  const { loading } = useMeditation();
+  const appState = useRef(AppState.currentState);
+  const backupInProgress = useRef(false);
+
+  const attemptAutomaticBackup = useCallback(async () => {
+    if (backupInProgress.current) return;
+
+    backupInProgress.current = true;
+    try {
+      const result = await BackupService.runAutomaticBackup();
+      if (!result.success) {
+        console.warn('Automatic backup will retry the next time the app opens:', result.error);
+      }
+    } finally {
+      backupInProgress.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      attemptAutomaticBackup();
+    }
+
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (!loading && appState.current !== 'active' && nextAppState === 'active') {
+        attemptAutomaticBackup();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => subscription.remove();
+  }, [attemptAutomaticBackup, loading]);
+
+  return null;
+};
+
 export default function App() {
   return (
     <MeditationProvider>
+      <AutomaticBackupManager />
       <ModalProvider>
         <>
           <NavigationContainer>
