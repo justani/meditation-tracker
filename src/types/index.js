@@ -7,6 +7,7 @@ export const MeditationSessionType = {
   type: 'string', // 'morning' | 'evening' | 'timer'
   completed: 'boolean',
   completedAt: 'number', // timestamp
+  period: 'string', // 'morning' | 'evening' for timer sessions (optional)
   duration: 'number' // in minutes (optional for future)
 };
 

@@ -1,14 +1,79 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useMeditation } from '../context/MeditationContext';
 import { useModal } from '../context/ModalContext';
-import { getCalendarGrid, getMonthName, getTodayDate } from '../utils/dateHelpers';
+import { getCalendarGrid, getDaysInMonth, getMonthName, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
 import { COLORS } from '../theme/colors';
 
+const getSessionPeriod = (session) => {
+  if (session.type !== SESSION_TYPES.TIMER) return session.type;
+  if (
+    session.period === SESSION_TYPES.MORNING
+    || session.period === SESSION_TYPES.EVENING
+  ) {
+    return session.period;
+  }
+
+  const timerId = String(session.id || '');
+  const timerIdTimestamp = timerId.startsWith('timer_')
+    ? Number(timerId.slice('timer_'.length))
+    : Number.NaN;
+  const timestamp = [session.startedAt, session.completedAt, timerIdTimestamp]
+    .find(value => Number.isFinite(value));
+  const sessionTime = new Date(timestamp);
+
+  if (!Number.isFinite(sessionTime.getTime())) return SESSION_TYPES.MORNING;
+  return sessionTime.getHours() < 12
+    ? SESSION_TYPES.MORNING
+    : SESSION_TYPES.EVENING;
+};
+
+const formatMeditationTime = (totalMinutes) => {
+  const roundedMinutes = Math.round(totalMinutes);
+  if (roundedMinutes < 60) return `${roundedMinutes} min`;
+
+  const hours = Math.floor(roundedMinutes / 60);
+  const minutes = roundedMinutes % 60;
+  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+};
+
+const getMonthKey = (year, month) => (
+  `${year}-${String(month + 1).padStart(2, '0')}`
+);
+
+const getPracticeDayCount = (monthSessions, dayLimit) => (
+  new Set(
+    monthSessions
+      .filter(session => Number(session.date.slice(8, 10)) <= dayLimit)
+      .map(session => session.date)
+  ).size
+);
+
+const getPracticeComparison = ({
+  isFutureMonth,
+  practiceDays,
+  previousPracticeDays,
+  comparisonPeriodLabel,
+}) => {
+  if (isFutureMonth) return 'This month has not started yet';
+  if (practiceDays === 0) return 'No practice recorded in this period yet';
+  if (previousPracticeDays === 0) {
+    return `No practice days in ${comparisonPeriodLabel}`;
+  }
+
+  const difference = practiceDays - previousPracticeDays;
+  if (difference === 0) {
+    return `Same number of practice days as ${comparisonPeriodLabel}`;
+  }
+
+  const differenceLabel = Math.abs(difference) === 1 ? 'day' : 'days';
+  return `${Math.abs(difference)} ${difference > 0 ? 'more' : 'fewer'} practice ${differenceLabel} than ${comparisonPeriodLabel}`;
+};
+
 export default function ProgressScreen() {
-  const { sessions, loading, markSessionComplete, removeSessionComplete, userProgress } = useMeditation();
+  const { sessions, loading, markSessionComplete, removeSessionComplete } = useMeditation();
   const { showModal } = useModal();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
@@ -20,37 +85,61 @@ export default function ProgressScreen() {
   const monthName = getMonthName(selectedMonth);
   const today = getTodayDate();
   
-  // Calculate monthly statistics
-  const monthSessions = sessions.filter(session => {
-    const sessionDate = new Date(session.date);
-    return sessionDate.getMonth() === selectedMonth && 
-           sessionDate.getFullYear() === selectedYear && 
-           session.completed;
-  });
-  
+  // Calculate monthly statistics. Timer sessions are grouped by their local start time.
+  const selectedMonthKey = getMonthKey(selectedYear, selectedMonth);
+  const completedSessions = sessions.filter(session => session.completed);
+  const monthSessions = completedSessions.filter(
+    session => session.date.startsWith(selectedMonthKey)
+  );
+  const selectedMonthDate = new Date(selectedYear, selectedMonth, 1);
+  const currentMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const isCurrentMonth = selectedMonthDate.getTime() === currentMonthDate.getTime();
+  const isFutureMonth = selectedMonthDate > currentMonthDate;
+  const availableDays = isFutureMonth
+    ? 0
+    : isCurrentMonth
+      ? currentDate.getDate()
+      : getDaysInMonth(selectedYear, selectedMonth);
+  const totalMinutes = monthSessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+
+  const previousMonthDate = new Date(selectedYear, selectedMonth - 1, 1);
+  const previousMonthKey = getMonthKey(
+    previousMonthDate.getFullYear(),
+    previousMonthDate.getMonth()
+  );
+  const previousMonthSessions = completedSessions.filter(
+    session => session.date.startsWith(previousMonthKey)
+  );
+  const previousPeriodDays = Math.min(
+    availableDays,
+    getDaysInMonth(previousMonthDate.getFullYear(), previousMonthDate.getMonth())
+  );
+
   const monthlyStats = {
     totalSessions: monthSessions.length,
-    morningCount: monthSessions.filter(s => s.type === SESSION_TYPES.MORNING).length,
-    eveningCount: monthSessions.filter(s => s.type === SESSION_TYPES.EVENING).length,
-    perfectDays: 0,
-    totalHours: Math.round((monthSessions.reduce((sum, s) => sum + (s.duration || 0), 0) / 60) * 100) / 100
+    morningCount: monthSessions.filter(
+      session => getSessionPeriod(session) === SESSION_TYPES.MORNING
+    ).length,
+    eveningCount: monthSessions.filter(
+      session => getSessionPeriod(session) === SESSION_TYPES.EVENING
+    ).length,
+    practiceDays: getPracticeDayCount(monthSessions, availableDays),
+    meditationTime: formatMeditationTime(totalMinutes),
   };
-  
-  // Count perfect days (both sessions completed on same day)
-  const sessionsByDate = {};
-  monthSessions.forEach(session => {
-    if (!sessionsByDate[session.date]) {
-      sessionsByDate[session.date] = [];
-    }
-    sessionsByDate[session.date].push(session);
+
+  const previousPracticeDays = getPracticeDayCount(
+    previousMonthSessions,
+    previousPeriodDays
+  );
+  const comparisonPeriodLabel = isCurrentMonth
+    ? 'the same period last month'
+    : 'the previous month';
+  const comparisonText = getPracticeComparison({
+    isFutureMonth,
+    practiceDays: monthlyStats.practiceDays,
+    previousPracticeDays,
+    comparisonPeriodLabel,
   });
-  
-  monthlyStats.perfectDays = Object.values(sessionsByDate).filter(
-    daySessions => (
-      daySessions.some(session => session.type === SESSION_TYPES.MORNING)
-      && daySessions.some(session => session.type === SESSION_TYPES.EVENING)
-    )
-  ).length;
   
   const getSessionsForDate = (date) => {
     return sessions.filter(session => session.date === date && session.completed);
@@ -225,59 +314,49 @@ export default function ProgressScreen() {
           {calendarGrid.map(renderCalendarDay)}
         </View>
         
-        {/* Statistics Panel */}
+        {/* Monthly Progress */}
         <View style={styles.statsPanel}>
-          <Text style={styles.statsPanelTitle}>Monthly Statistics</Text>
-          
-          <View style={styles.statsGridThree}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{monthlyStats.totalSessions}</Text>
-              <Text style={styles.statLabel}>Total Sessions</Text>
+          <Text style={styles.statsPanelTitle}>Monthly Progress</Text>
+
+          <View style={styles.practiceSummary}>
+            <View style={styles.practiceDaysNumberContainer}>
+              <Text
+                style={styles.practiceDaysNumber}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {monthlyStats.practiceDays}
+              </Text>
             </View>
-            
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{monthlyStats.totalHours}h</Text>
-              <Text style={styles.statLabel}>Total Hours</Text>
-            </View>
-            
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{monthlyStats.perfectDays}</Text>
-              <Text style={styles.statLabel}>Perfect Days</Text>
+            <View style={styles.practiceDaysCopy}>
+              <Text style={styles.practiceDaysLabel}>
+                of {availableDays} {availableDays === 1 ? 'day' : 'days'} practiced
+              </Text>
+              <Text style={styles.comparisonText}>{comparisonText}</Text>
             </View>
           </View>
-          
-          <View style={styles.statsGrid}>
-            <View style={styles.statBox}>
-              <Text style={[styles.statNumber, { color: COLORS.morning }]}>
-                {monthlyStats.morningCount}
-              </Text>
-              <Text style={styles.statLabel}>Morning Sessions</Text>
+
+          <View style={styles.monthlyTotals}>
+            <View style={styles.monthlyTotalItem}>
+              <Text style={styles.monthlyTotalValue}>{monthlyStats.meditationTime}</Text>
+              <Text style={styles.monthlyTotalLabel}>Meditation time</Text>
             </View>
-            
-            <View style={styles.statBox}>
-              <Text style={[styles.statNumber, { color: COLORS.evening }]}>
-                {monthlyStats.eveningCount}
-              </Text>
-              <Text style={styles.statLabel}>Evening Sessions</Text>
+            <View style={styles.totalDivider} />
+            <View style={styles.monthlyTotalItem}>
+              <Text style={styles.monthlyTotalValue}>{monthlyStats.totalSessions}</Text>
+              <Text style={styles.monthlyTotalLabel}>Sessions</Text>
             </View>
           </View>
-          
-          <View style={styles.globalStats}>
-            <Text style={styles.globalStatsTitle}>Overall Progress</Text>
-            <View style={styles.globalStatsRow}>
-              <View style={styles.globalStatItem}>
-                <Text style={styles.globalStatNumber}>{userProgress.currentStreak}</Text>
-                <Text style={styles.globalStatLabel}>Current Streak</Text>
-              </View>
-              <View style={styles.globalStatItem}>
-                <Text style={styles.globalStatNumber}>{userProgress.longestStreak}</Text>
-                <Text style={styles.globalStatLabel}>Best Streak</Text>
-              </View>
-              <View style={styles.globalStatItem}>
-                <Text style={styles.globalStatNumber}>{userProgress.totalHours || 0}h</Text>
-                <Text style={styles.globalStatLabel}>Total Hours</Text>
-              </View>
-            </View>
+
+          <View style={styles.sessionBreakdown}>
+            <Text style={[styles.sessionBreakdownText, { color: COLORS.morning }]}>
+              Morning {monthlyStats.morningCount}
+            </Text>
+            <View style={styles.breakdownDot} />
+            <Text style={[styles.sessionBreakdownText, { color: COLORS.evening }]}>
+              Evening {monthlyStats.eveningCount}
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -442,67 +521,84 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.text,
-    marginBottom: 15,
-    textAlign: 'center',
+    marginBottom: 18,
   },
-  statsGrid: {
+  practiceSummary: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  statsGridThree: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    flexWrap: 'wrap',
-  },
-  statBox: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: 15,
-    marginHorizontal: 5,
-    backgroundColor: COLORS.surfaceMuted,
-    borderRadius: 10,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  statNumber: {
-    fontSize: 24,
+  practiceDaysNumberContainer: {
+    width: 72,
+    minHeight: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  practiceDaysNumber: {
+    width: '100%',
+    fontSize: 42,
     fontWeight: 'bold',
     color: COLORS.primaryActive,
-    marginBottom: 5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textMuted,
     textAlign: 'center',
+    textAlignVertical: 'center',
   },
-  globalStats: {
-    marginTop: 10,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+  practiceDaysCopy: {
+    flex: 1,
+    paddingLeft: 10,
   },
-  globalStatsTitle: {
+  practiceDaysLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 10,
-    textAlign: 'center',
+    marginBottom: 4,
   },
-  globalStatsRow: {
+  comparisonText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: COLORS.textMuted,
+  },
+  monthlyTotals: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    alignItems: 'stretch',
+    paddingVertical: 20,
   },
-  globalStatItem: {
-    alignItems: 'center',
+  monthlyTotalItem: {
+    flex: 1,
   },
-  globalStatNumber: {
-    fontSize: 20,
+  monthlyTotalValue: {
+    fontSize: 22,
     fontWeight: 'bold',
     color: COLORS.primaryActive,
-    marginBottom: 5,
+    marginBottom: 4,
   },
-  globalStatLabel: {
-    fontSize: 12,
+  monthlyTotalLabel: {
+    fontSize: 13,
     color: COLORS.textMuted,
+  },
+  totalDivider: {
+    width: 1,
+    backgroundColor: COLORS.border,
+    marginHorizontal: 20,
+  },
+  sessionBreakdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  sessionBreakdownText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  breakdownDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginHorizontal: 10,
+    backgroundColor: COLORS.borderStrong,
   },
 });

@@ -549,6 +549,9 @@ export const MeditationProvider = ({ children }) => {
         completed: true,
         completedAt,
         startedAt,
+        period: startedDate.getHours() < 12
+          ? SESSION_TYPES.MORNING
+          : SESSION_TYPES.EVENING,
         duration,
       };
 
