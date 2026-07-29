@@ -72,8 +72,7 @@ export default function TimerScreen({ route }) {
       try {
         const reconciled = await reconcileMeditationTimer(storedTimer);
         setAlarmAccessAvailable(reconciled);
-      } catch (error) {
-        console.error('Error restoring meditation timer alarms:', error);
+      } catch {
         setAlarmAccessAvailable(Platform.OS !== 'android');
       }
     } else {

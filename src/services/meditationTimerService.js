@@ -52,8 +52,7 @@ export const loadActiveMeditationTimer = async () => {
   try {
     const storedTimer = await AsyncStorage.getItem(TIMER_STORAGE_KEY);
     return storedTimer ? JSON.parse(storedTimer) : null;
-  } catch (error) {
-    console.error('Error loading meditation timer:', error);
+  } catch {
     return null;
   }
 };

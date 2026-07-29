@@ -67,16 +67,12 @@ const NotificationResponseManager = () => {
 
       handledResponsesRef.current.add(responseKey);
       openTimerFromNotification({ requestId });
-      Notifications.clearLastNotificationResponseAsync().catch(error => {
-        console.error('Error clearing handled notification response:', error);
-      });
+      Notifications.clearLastNotificationResponseAsync().catch(() => {});
     };
 
     Notifications.getLastNotificationResponseAsync()
       .then(handleResponse)
-      .catch(error => {
-        console.error('Error reading initial notification response:', error);
-      });
+      .catch(() => {});
     const subscription = Notifications.addNotificationResponseReceivedListener(handleResponse);
 
     return () => subscription.remove();

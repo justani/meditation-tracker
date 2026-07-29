@@ -196,9 +196,7 @@ export const MeditationProvider = ({ children }) => {
       if (state.settings.notificationsEnabled) {
         await scheduleNotifications();
       }
-    } catch (error) {
-      console.error('Error initializing notifications:', error);
-    }
+    } catch {}
   };
 
   const cancelIncompleteDayReminders = (date) => queueNotificationOperation(async () => {
@@ -208,9 +206,7 @@ export const MeditationProvider = ({ children }) => {
           Notifications.cancelScheduledNotificationAsync(`${REMINDER_PREFIX}${type}-${date}`)
         ))
       );
-    } catch (error) {
-      console.error('Error cancelling completed-day reminders:', error);
-    }
+    } catch {}
   });
 
   const scheduleNotifications = (settingsOverride = null, sessionsOverride = null) => queueNotificationOperation(async () => {
@@ -319,9 +315,7 @@ export const MeditationProvider = ({ children }) => {
           }
         }
       }
-    } catch (error) {
-      console.error('Error scheduling notifications:', error);
-    }
+    } catch {}
   });
 
   // Check remaining scheduled notifications and reschedule if needed
@@ -353,12 +347,9 @@ export const MeditationProvider = ({ children }) => {
 
       // Replenish reminders when the schedule no longer reaches a week ahead.
       if (latestTriggerTime < sevenDaysFromNow.getTime()) {
-        console.log('Low on notifications, rescheduling...');
         await scheduleNotifications();
       }
-    } catch (error) {
-      console.error('Error checking notifications:', error);
-    }
+    } catch {}
   };
 
   // Calculate streaks from sessions
