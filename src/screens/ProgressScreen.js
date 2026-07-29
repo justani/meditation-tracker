@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMeditation } from '../context/MeditationContext';
 import { useModal } from '../context/ModalContext';
@@ -208,7 +209,7 @@ export default function ProgressScreen() {
   
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading your progress...</Text>
         </View>
@@ -217,7 +218,7 @@ export default function ProgressScreen() {
   }
   
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView}>
         {/* Session Type Tabs */}
         <View style={styles.tabContainer}>
@@ -256,7 +257,7 @@ export default function ProgressScreen() {
             style={styles.navButton}
             onPress={() => navigateMonth('prev')}
           >
-            <Ionicons name="chevron-back" size={24} color={COLORS.surface} />
+            <Ionicons name="chevron-back" size={24} color={COLORS.onPrimary} />
           </TouchableOpacity>
           
           <Text style={styles.monthTitle}>
@@ -267,7 +268,7 @@ export default function ProgressScreen() {
             style={styles.navButton}
             onPress={() => navigateMonth('next')}
           >
-            <Ionicons name="chevron-forward" size={24} color={COLORS.surface} />
+            <Ionicons name="chevron-forward" size={24} color={COLORS.onPrimary} />
           </TouchableOpacity>
         </View>
         
@@ -428,7 +429,7 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   activeTabText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
   },
   calendarDay: {
     width: '14.28%',
@@ -465,18 +466,18 @@ const styles = StyleSheet.create({
     color: COLORS.textSubtle,
   },
   inactiveCompletedDayText: {
-    color: COLORS.surface,
+    color: COLORS.primaryInk,
     fontWeight: 'bold',
   },
   todayText: {
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     fontWeight: 'bold',
   },
   futureDayText: {
     color: COLORS.disabled,
   },
   completedDayText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontWeight: 'bold',
   },
   statsPanel: {
@@ -510,7 +511,7 @@ const styles = StyleSheet.create({
     width: '100%',
     fontSize: 42,
     fontWeight: 'bold',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     textAlign: 'center',
     textAlignVertical: 'center',
   },
@@ -540,7 +541,7 @@ const styles = StyleSheet.create({
   monthlyTotalValue: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     marginBottom: 4,
   },
   monthlyTotalLabel: {

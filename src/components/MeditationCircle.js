@@ -49,8 +49,8 @@ export default function MeditationCircle({
 }) {
   const isMorning = type === SESSION_TYPES.MORNING;
   const label = isMorning ? 'Morning' : 'Evening';
-  const sessionColor = isMorning ? COLORS.sunrise : COLORS.primary;
-  const sessionOverlay = isMorning ? COLORS.sunriseOverlay : COLORS.primaryOverlaySoft;
+  const sessionColor = isMorning ? COLORS.sunrise : COLORS.evening;
+  const sessionOverlay = isMorning ? COLORS.sunriseOverlay : COLORS.eveningOverlay;
   
   // Animated values
   const completionProgress = useSharedValue(completed ? 1 : 0);

@@ -5,12 +5,12 @@ import {
   Linking,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as Haptics from 'expo-haptics';
 import { useMeditation } from '../context/MeditationContext';
@@ -256,7 +256,7 @@ export default function TimerScreen({ route }) {
     : false;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         {activeTimer ? (
           <View style={styles.activeTimerCard}>
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   introTitle: {
-    color: COLORS.primary,
+    color: COLORS.primaryInk,
     fontSize: 22,
     fontWeight: '700',
   },
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   selectedDurationText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
   },
   startButton: {
     backgroundColor: COLORS.primary,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   startButtonText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 17,
     fontWeight: '700',
   },
@@ -480,13 +480,13 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   timerEyebrow: {
-    color: COLORS.sageLight,
+    color: COLORS.onPrimary,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.4,
   },
   timerValue: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 72,
     fontWeight: '300',
     fontVariant: ['tabular-nums'],
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     color: COLORS.gold,
   },
   timerCaption: {
-    color: COLORS.sageLight,
+    color: COLORS.onPrimary,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   finishButtonText: {
-    color: COLORS.primary,
+    color: COLORS.primaryInk,
     fontSize: 16,
     fontWeight: '700',
   },

@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   selectedTimeText: {
     fontSize: 32,
     fontWeight: '700',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
   },
   pickersContainer: {
     flexDirection: 'row',
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   selectedOptionText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontWeight: '600',
   },
   presetContainer: {
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedPresetText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
   },
   footer: {
     backgroundColor: COLORS.surface,
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
   },
 });
 

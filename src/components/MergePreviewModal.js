@@ -63,7 +63,7 @@ const MergePreviewModal = ({
           {/* Backup Info */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="cloud-download" size={20} color={COLORS.primaryActive} />
+              <Ionicons name="cloud-download" size={20} color={COLORS.primaryInk} />
               <Text style={styles.sectionTitle}>Backup Information</Text>
             </View>
             <View style={styles.infoRow}>
@@ -79,7 +79,7 @@ const MergePreviewModal = ({
           {/* Summary */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="analytics" size={20} color={COLORS.primaryActive} />
+              <Ionicons name="analytics" size={20} color={COLORS.primaryInk} />
               <Text style={styles.sectionTitle}>Merge Summary</Text>
             </View>
             <Text style={styles.summaryText}>{preview.summary}</Text>
@@ -88,7 +88,7 @@ const MergePreviewModal = ({
           {/* Session Changes */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="calendar" size={20} color={COLORS.primaryActive} />
+              <Ionicons name="calendar" size={20} color={COLORS.primaryInk} />
               <Text style={styles.sectionTitle}>Sessions</Text>
             </View>
             
@@ -131,7 +131,7 @@ const MergePreviewModal = ({
           {preview.settings.changed && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="settings" size={20} color={COLORS.primaryActive} />
+                <Ionicons name="settings" size={20} color={COLORS.primaryInk} />
                 <Text style={styles.sectionTitle}>Settings</Text>
               </View>
               
@@ -171,7 +171,7 @@ const MergePreviewModal = ({
             onPress={onConfirm}
             disabled={loading || !hasChanges}
           >
-            <Ionicons name="checkmark" size={20} color={COLORS.surface} />
+            <Ionicons name="checkmark" size={20} color={COLORS.onPrimary} />
             <Text style={styles.confirmButtonText}>
               {hasChanges ? 'Merge Data' : 'Already Up to Date'}
             </Text>
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
   },
   statLabel: {
     fontSize: 12,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
   },
 });
 

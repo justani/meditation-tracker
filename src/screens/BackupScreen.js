@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   AppState,
-  SafeAreaView,
   RefreshControl
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMeditation } from '../context/MeditationContext';
 import { BackupService } from '../services/backupService';
@@ -288,9 +288,9 @@ const BackupScreen = () => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primaryActive} />
+          <ActivityIndicator size="large" color={COLORS.primaryInk} />
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
@@ -298,7 +298,7 @@ const BackupScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -317,10 +317,10 @@ const BackupScreen = () => {
               onPress={handleGoogleSignIn}
               disabled={operationInProgress}
             >
-              <Ionicons name="logo-google" size={20} color={COLORS.surface} />
+              <Ionicons name="logo-google" size={20} color={COLORS.onPrimary} />
               <Text style={styles.buttonText}>Connect to Google Drive</Text>
               {operationInProgress && (
-                <ActivityIndicator size="small" color={COLORS.surface} style={styles.buttonLoader} />
+                <ActivityIndicator size="small" color={COLORS.onPrimary} style={styles.buttonLoader} />
               )}
             </TouchableOpacity>
           ) : (
@@ -343,7 +343,7 @@ const BackupScreen = () => {
                   onPress={handleBackup}
                   disabled={operationInProgress}
                 >
-                  <Ionicons name="cloud-upload" size={18} color={COLORS.surface} />
+                  <Ionicons name="cloud-upload" size={18} color={COLORS.onPrimary} />
                   <Text style={styles.actionButtonText}>Create Backup</Text>
                 </TouchableOpacity>
 
@@ -382,7 +382,7 @@ const BackupScreen = () => {
                       onPress={() => handleRestore(backup)}
                       disabled={operationInProgress}
                     >
-                      <Ionicons name="git-merge" size={20} color={COLORS.primaryActive} />
+                      <Ionicons name="git-merge" size={20} color={COLORS.primaryInk} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.iconButton}
@@ -430,7 +430,7 @@ const BackupScreen = () => {
       {operationInProgress && (
         <View style={styles.overlay}>
           <View style={styles.overlayContent}>
-            <ActivityIndicator size="large" color={COLORS.primaryActive} />
+            <ActivityIndicator size="large" color={COLORS.primaryInk} />
             <Text style={styles.overlayText}>Processing...</Text>
           </View>
         </View>
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionButtonText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 14,
     fontWeight: '500',
   },

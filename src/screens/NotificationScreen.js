@@ -10,6 +10,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -119,11 +120,12 @@ export default function NotificationScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.title}>Meditation Reminders</Text>
-      <Text style={styles.subtitle}>
-        Set daily reminders for your meditation practice
-      </Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>Meditation Reminders</Text>
+        <Text style={styles.subtitle}>
+          Set daily reminders for your meditation practice
+        </Text>
 
       {/* Notifications Toggle */}
       <View style={styles.settingRow}>
@@ -352,7 +354,8 @@ export default function NotificationScreen() {
           • You can always adjust these times later
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -361,6 +364,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
@@ -368,7 +374,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.primaryInk,
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -417,7 +423,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -456,7 +462,7 @@ const styles = StyleSheet.create({
   },
   pickerButton: {
     fontSize: 16,
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     fontWeight: '600',
   },
   infoCard: {
@@ -487,12 +493,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   languageText: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   dropdownArrow: {
-    color: COLORS.surface,
+    color: COLORS.onPrimary,
     fontSize: 12,
     marginLeft: 8,
   },
@@ -518,12 +524,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedLanguageOptionText: {
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     fontWeight: '600',
   },
   checkmark: {
     fontSize: 18,
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     fontWeight: 'bold',
   },
 });

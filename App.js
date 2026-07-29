@@ -135,7 +135,7 @@ export default function App() {
               if (pendingTimerStart) openTimerFromNotification(pendingTimerStart);
             }}
           >
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <Tab.Navigator
               screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
@@ -161,13 +161,7 @@ export default function App() {
                   backgroundColor: COLORS.surface,
                   borderTopColor: COLORS.border,
                 },
-                headerStyle: {
-                  backgroundColor: COLORS.primary,
-                },
-                headerTintColor: COLORS.surface,
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerShown: false,
               })}
             >
               <Tab.Screen 

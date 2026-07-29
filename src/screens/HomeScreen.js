@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMeditation } from '../context/MeditationContext';
 import { useModal } from '../context/ModalContext';
 import { formatDateDisplay, getTodayDate } from '../utils/dateHelpers';
@@ -98,9 +99,9 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primaryActive} />
+          <ActivityIndicator size="large" color={COLORS.primaryInk} />
           <Text style={styles.loadingText}>Loading your meditation data...</Text>
         </View>
       </SafeAreaView>
@@ -109,7 +110,7 @@ export default function HomeScreen() {
 
   return (
     <>
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Date Display */}
         <View style={styles.dateContainer}>
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     width: 140,
     fontSize: 48,
     fontWeight: 'bold',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     textAlign: 'center',
     textAlignVertical: 'center',
   },
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
   streakMessage: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     marginTop: 12,
   },
   circlesContainer: {
@@ -312,7 +313,7 @@ const styles = StyleSheet.create({
   todaySummary: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     marginBottom: 6,
   },
   periodSummary: {
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
     width: '100%',
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.primaryActive,
+    color: COLORS.primaryInk,
     marginBottom: 4,
     textAlign: 'center',
     textAlignVertical: 'center',
