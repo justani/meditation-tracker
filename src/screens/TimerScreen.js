@@ -346,17 +346,6 @@ export default function TimerScreen() {
               </Text>
             </Pressable>
 
-            {Platform.OS === 'android' && Platform.Version >= 31 && (
-              <View style={styles.reliabilityCard}>
-                <Text style={styles.reliabilityTitle}>Make alarms reliable</Text>
-                <Text style={styles.reliabilityText}>
-                  Android 12 and newer requires “Alarms & reminders” access. The chime uses alarm volume directly, so ordinary notification volume may stay at zero.
-                </Text>
-                <Pressable accessibilityRole="button" onPress={openAlarmSettings}>
-                  <Text style={styles.settingsLink}>Open alarm settings</Text>
-                </Pressable>
-              </View>
-            )}
           </>
         )}
       </ScrollView>
@@ -451,30 +440,6 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     opacity: 0.7,
-  },
-  reliabilityCard: {
-    backgroundColor: COLORS.primarySoft,
-    borderRadius: 16,
-    padding: 18,
-    gap: 7,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primaryActive,
-  },
-  reliabilityTitle: {
-    color: COLORS.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  reliabilityText: {
-    color: COLORS.textMuted,
-    fontSize: 13,
-    lineHeight: 20,
-  },
-  settingsLink: {
-    color: COLORS.primaryActive,
-    fontSize: 14,
-    fontWeight: '700',
-    paddingVertical: 5,
   },
   activeTimerCard: {
     flex: 1,

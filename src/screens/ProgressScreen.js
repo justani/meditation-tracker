@@ -280,21 +280,6 @@ export default function ProgressScreen() {
             </View>
           </View>
         </View>
-        
-        {/* Legend */}
-        <View style={styles.legend}>
-          <Text style={styles.legendTitle}>How to Use</Text>
-          <View style={styles.legendItems}>
-            <View style={styles.legendItem}>
-              <Text style={styles.legendIcon}>☀️🌙</Text>
-              <Text style={styles.legendText}>Use tabs to switch between morning and evening sessions</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendCircle, { backgroundColor: COLORS.primaryActive }]} />
-              <Text style={styles.legendText}>Tap any day to toggle that session</Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
 
     </SafeAreaView>
@@ -445,40 +430,6 @@ const styles = StyleSheet.create({
   completedDayText: {
     color: COLORS.surface,
     fontWeight: 'bold',
-  },
-  legend: {
-    margin: 20,
-    backgroundColor: COLORS.surface,
-    borderRadius: 15,
-    padding: 20,
-  },
-  legendTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 15,
-  },
-  legendItems: {
-    gap: 10,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  legendCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  legendText: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-  },
-  legendIcon: {
-    fontSize: 16,
-    marginRight: 12,
-    width: 20,
   },
   statsPanel: {
     margin: 20,
