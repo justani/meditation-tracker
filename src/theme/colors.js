@@ -3,6 +3,7 @@ export const COLORS = {
   primaryActive: '#2D7A67',
   primarySoft: '#E6F0EC',
   primaryWash: '#F0F6F3',
+  sunrise: '#FFB000',
   background: '#F4F7F5',
   surface: '#FFFFFF',
   surfaceMuted: '#EEF3F0',
@@ -26,6 +27,7 @@ export const COLORS = {
   shadow: '#0E2B24',
   primaryOverlay: 'rgba(45, 122, 103, 0.30)',
   primaryOverlaySoft: 'rgba(45, 122, 103, 0.18)',
+  sunriseOverlay: 'rgba(255, 176, 0, 0.18)',
 };
 
 export default COLORS;

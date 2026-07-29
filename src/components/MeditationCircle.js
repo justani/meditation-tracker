@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { 
   useSharedValue, 
@@ -7,12 +7,38 @@ import Animated, {
   withSpring,
   interpolate
 } from 'react-native-reanimated';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Line, Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { SESSION_TYPES } from '../types';
 import { COLORS } from '../theme/colors';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+const SessionIcon = ({ isMorning, color, size }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    {isMorning ? (
+      <>
+        <Circle cx="12" cy="12" r="4.25" stroke={color} strokeWidth="1.8" />
+        <Line x1="12" y1="2.5" x2="12" y2="5" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="12" y1="19" x2="12" y2="21.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="2.5" y1="12" x2="5" y2="12" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="19" y1="12" x2="21.5" y2="12" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="5.3" y1="5.3" x2="7.1" y2="7.1" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="16.9" y1="16.9" x2="18.7" y2="18.7" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="5.3" y1="18.7" x2="7.1" y2="16.9" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <Line x1="16.9" y1="7.1" x2="18.7" y2="5.3" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      </>
+    ) : (
+      <Path
+        d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    )}
+  </Svg>
+);
 
 export default function MeditationCircle({ 
   type, 
@@ -21,16 +47,15 @@ export default function MeditationCircle({
   onLongPress,
   disabled = false 
 }) {
-  const [isPressed, setIsPressed] = useState(false);
   const isMorning = type === SESSION_TYPES.MORNING;
-  const icon = isMorning ? '☀️' : '🌙';
   const label = isMorning ? 'Morning' : 'Evening';
+  const sessionColor = isMorning ? COLORS.sunrise : COLORS.primary;
+  const sessionOverlay = isMorning ? COLORS.sunriseOverlay : COLORS.primaryOverlaySoft;
   
   // Animated values
-  const fillProgress = useSharedValue(completed ? 1 : 0);
+  const completionProgress = useSharedValue(completed ? 1 : 0);
   const scaleValue = useSharedValue(1);
   const longPressProgress = useSharedValue(completed ? 1 : 0);
-  const [isLongPressing, setIsLongPressing] = useState(false);
   
   // Animation duration for long press feedback
   const LONG_PRESS_DURATION = 800;
@@ -44,7 +69,7 @@ export default function MeditationCircle({
     if (completed) {
       // Success animation: scale up briefly then fill
       scaleValue.value = withSpring(1.1, { damping: 10 });
-      fillProgress.value = withSpring(1, {
+      completionProgress.value = withSpring(1, {
         damping: 15,
         stiffness: 150,
         mass: 1,
@@ -61,7 +86,7 @@ export default function MeditationCircle({
         scaleValue.value = withSpring(1, { damping: 10 });
       }, 300);
     } else {
-      fillProgress.value = withSpring(0, {
+      completionProgress.value = withSpring(0, {
         damping: 15,
         stiffness: 150,
         mass: 1,
@@ -82,19 +107,9 @@ export default function MeditationCircle({
     };
   });
   
-  const fillAnimatedStyle = useAnimatedStyle(() => {
-    const height = interpolate(fillProgress.value, [0, 1], [0, 120]);
-    const opacity = interpolate(fillProgress.value, [0, 0.1, 1], [0, 0.3, 0.8]);
-    
-    return {
-      height,
-      opacity,
-    };
-  });
-  
-  const glowAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(fillProgress.value, [0, 0.7, 1], [0, 0, 0.6]);
-    const scale = interpolate(fillProgress.value, [0, 1], [0.8, 1.2]);
+  const completionWashAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(completionProgress.value, [0, 0.15, 1], [0, 0.4, 1]);
+    const scale = interpolate(completionProgress.value, [0, 1], [0.35, 1.05]);
     
     return {
       opacity,
@@ -118,25 +133,17 @@ export default function MeditationCircle({
   
   const circleStyle = [
     styles.circle,
-    completed && styles.completedCircle,
+    completed && { borderColor: sessionColor },
     disabled && styles.disabledCircle
   ];
   
-  const iconStyle = [
-    styles.icon,
-    completed && styles.completedIcon
-  ];
-  
   const handlePressIn = () => {
-    setIsPressed(true);
     scaleValue.value = withSpring(0.95);
     
     // Add gentle haptic feedback on press start
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
     // Start long press feedback animation
-    setIsLongPressing(true);
-    
     if (completed) {
       // For removal: start from filled (1) and go to empty (0) - anti-clockwise unfill
       longPressProgress.value = withTiming(0, { duration: LONG_PRESS_DURATION });
@@ -147,11 +154,9 @@ export default function MeditationCircle({
   };
   
   const handlePressOut = () => {
-    setIsPressed(false);
     scaleValue.value = withSpring(1);
     
     // Reset long press feedback to initial state based on completion status
-    setIsLongPressing(false);
     if (completed) {
       // Reset to full for completed sessions
       longPressProgress.value = withTiming(1, { duration: 200 });
@@ -162,8 +167,6 @@ export default function MeditationCircle({
   };
   
   const handleLongPress = () => {
-    setIsPressed(false);
-    setIsLongPressing(false);
     scaleValue.value = withSpring(1);
     
     if (completed) {
@@ -201,6 +204,8 @@ export default function MeditationCircle({
       disabled={disabled}
       activeOpacity={1}
       delayLongPress={LONG_PRESS_DURATION}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} meditation, ${completed ? 'completed' : 'not completed'}`}
     >
       <View style={styles.circleContainer}>
         {/* Progress Ring */}
@@ -214,7 +219,7 @@ export default function MeditationCircle({
             cx="62"
             cy="62"
             r={CIRCLE_RADIUS}
-            stroke={COLORS.primaryActive}
+            stroke={sessionColor}
             strokeWidth="3"
             fill="none"
             strokeDasharray={CIRCLE_CIRCUMFERENCE}
@@ -225,14 +230,23 @@ export default function MeditationCircle({
         </Svg>
         
         <Animated.View style={[circleStyle, animatedCircleStyle]}>
-          {/* Glow Effect */}
-          <Animated.View style={[styles.glowEffect, glowAnimatedStyle]} />
-          
-          {/* Animated Fill */}
-          <Animated.View style={[styles.animatedFill, fillAnimatedStyle]} />
+          {/* Confirmed-state wash */}
+          <Animated.View
+            style={[
+              styles.completionWash,
+              { backgroundColor: sessionOverlay },
+              completionWashAnimatedStyle,
+            ]}
+          />
           
           {/* Icon */}
-          <Text style={iconStyle}>{icon}</Text>
+          <View style={styles.icon}>
+            <SessionIcon
+              isMorning={isMorning}
+              color={sessionColor}
+              size={completed ? 38 : 34}
+            />
+          </View>
         </Animated.View>
       </View>
       <Text style={styles.label}>{label}</Text>
@@ -274,40 +288,17 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
-  completedCircle: {
-    borderColor: COLORS.primaryActive,
-    backgroundColor: COLORS.primaryWash,
-  },
   disabledCircle: {
     opacity: 0.5,
   },
-  animatedFill: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.primaryOverlay,
-    borderBottomLeftRadius: 60,
-    borderBottomRightRadius: 60,
-  },
-  glowEffect: {
+  completionWash: {
     position: 'absolute',
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: COLORS.primaryOverlaySoft,
-    shadowColor: COLORS.primaryActive,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    elevation: 8,
   },
   icon: {
-    fontSize: 32,
     zIndex: 1,
-  },
-  completedIcon: {
-    fontSize: 36,
   },
   label: {
     fontSize: 14,

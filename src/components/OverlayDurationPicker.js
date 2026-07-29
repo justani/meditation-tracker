@@ -88,19 +88,25 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
     <View style={styles.overlay}>
       <View style={styles.modalContainer}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel}>
+          <TouchableOpacity
+            style={styles.headerAction}
+            onPress={handleCancel}
+            accessibilityRole="button"
+          >
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.sessionIcon}>{sessionIcon}</Text>
             <Text style={styles.title}>{sessionLabel} Meditation</Text>
           </View>
-          <TouchableOpacity onPress={handleConfirm}>
-            <Text style={styles.confirmButton}>Done</Text>
-          </TouchableOpacity>
+          <View style={styles.headerAction} />
         </View>
 
-        <View style={styles.content}>
+        <ScrollView
+          style={styles.contentScroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.instruction}>
             How long did you meditate?
           </Text>
@@ -154,6 +160,16 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
               ))}
             </View>
           </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.doneButton}
+            onPress={handleConfirm}
+            accessibilityRole="button"
+          >
+            <Text style={styles.doneButtonText}>Done</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -190,9 +206,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  headerAction: {
+    width: 64,
+  },
   titleContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   sessionIcon: {
     fontSize: 24,
@@ -207,14 +228,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textMuted,
   },
-  confirmButton: {
-    fontSize: 16,
-    color: COLORS.primaryActive,
-    fontWeight: '600',
+  contentScroll: {
+    flex: 1,
   },
   content: {
-    flex: 1,
     padding: 20,
+    paddingBottom: 24,
   },
   instruction: {
     fontSize: 16,
@@ -330,6 +349,26 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedPresetText: {
+    color: COLORS.surface,
+  },
+  footer: {
+    backgroundColor: COLORS.surface,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+  },
+  doneButton: {
+    minHeight: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primaryActive,
+  },
+  doneButtonText: {
+    fontSize: 17,
+    fontWeight: '600',
     color: COLORS.surface,
   },
 });
