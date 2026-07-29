@@ -72,6 +72,7 @@ export default function App() {
                 component={HomeScreen}
                 options={{
                   title: 'Meditation Tracker',
+                  tabBarLabel: 'Today',
                 }}
               />
               <Tab.Screen 
@@ -79,6 +80,7 @@ export default function App() {
                 component={ProgressScreen}
                 options={{
                   title: 'Your Progress',
+                  tabBarLabel: 'Progress',
                 }}
               />
               <Tab.Screen
@@ -86,6 +88,7 @@ export default function App() {
                 component={TimerScreen}
                 options={{
                   title: 'Meditation Timer',
+                  tabBarLabel: 'Timer',
                 }}
               />
               <Tab.Screen 
@@ -93,6 +96,7 @@ export default function App() {
                 component={NotificationScreen}
                 options={{
                   title: 'Notifications',
+                  tabBarLabel: 'Reminders',
                 }}
               />
               <Tab.Screen 
@@ -100,6 +104,7 @@ export default function App() {
                 component={BackupScreen}
                 options={{
                   title: 'Backup & Sync',
+                  tabBarLabel: 'Backup',
                 }}
               />
             </Tab.Navigator>
