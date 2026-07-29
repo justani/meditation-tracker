@@ -11,13 +11,13 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#173F35"
+      "backgroundColor": "#FFB000"
     },
     "android": {
       "package": "com.meditationtracker.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#173F35"
+        "backgroundColor": "#FFB000"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -36,7 +36,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#C7A76A",
+          "color": "#4A214C",
           "sounds": [
             "./assets/meditation_chime.wav"
           ]
