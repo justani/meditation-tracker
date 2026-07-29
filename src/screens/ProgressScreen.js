@@ -4,6 +4,7 @@ import { useMeditation } from '../context/MeditationContext';
 import { useModal } from '../context/ModalContext';
 import { getCalendarGrid, getMonthName, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
+import { COLORS } from '../theme/colors';
 
 export default function ProgressScreen() {
   const { sessions, loading, markSessionComplete, removeSessionComplete, userProgress } = useMeditation();
@@ -246,14 +247,14 @@ export default function ProgressScreen() {
           
           <View style={styles.statsGrid}>
             <View style={styles.statBox}>
-              <Text style={[styles.statNumber, { color: '#FFA500' }]}>
+              <Text style={[styles.statNumber, { color: COLORS.morning }]}>
                 {monthlyStats.morningCount}
               </Text>
               <Text style={styles.statLabel}>Morning Sessions</Text>
             </View>
             
             <View style={styles.statBox}>
-              <Text style={[styles.statNumber, { color: '#4169E1' }]}>
+              <Text style={[styles.statNumber, { color: COLORS.evening }]}>
                 {monthlyStats.eveningCount}
               </Text>
               <Text style={styles.statLabel}>Evening Sessions</Text>
@@ -288,7 +289,7 @@ export default function ProgressScreen() {
               <Text style={styles.legendText}>Use tabs to switch between morning and evening sessions</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendCircle, { backgroundColor: '#4A90E2' }]} />
+              <View style={[styles.legendCircle, { backgroundColor: COLORS.primaryActive }]} />
               <Text style={styles.legendText}>Tap any day to toggle that session</Text>
             </View>
           </View>
@@ -302,7 +303,7 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
   },
   calendarHeader: {
     flexDirection: 'row',
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     marginBottom: 10,
   },
   navButton: {
@@ -330,18 +331,18 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
     borderRadius: 22,
   },
   navButtonText: {
     fontSize: 24,
-    color: '#fff',
+    color: COLORS.surface,
     fontWeight: 'bold',
   },
   monthTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
   },
   daysHeader: {
     flexDirection: 'row',
@@ -353,20 +354,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: COLORS.textMuted,
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 15,
     margin: 10,
     paddingVertical: 10,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.surfaceMuted,
     margin: 10,
     borderRadius: 15,
     padding: 4,
@@ -382,8 +383,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   activeTab: {
-    backgroundColor: '#4A90E2',
-    shadowColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -395,10 +396,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: COLORS.textMuted,
   },
   activeTabText: {
-    color: '#fff',
+    color: COLORS.surface,
   },
   calendarDay: {
     width: '14.28%',
@@ -413,52 +414,52 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   inactiveCompletedDay: {
-    backgroundColor: 'rgba(74, 144, 226, 0.4)',
+    backgroundColor: COLORS.primaryOverlay,
   },
   todayDay: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: COLORS.primarySoft,
     borderWidth: 2,
-    borderColor: '#4A90E2',
+    borderColor: COLORS.primaryActive,
   },
   futureDay: {
     opacity: 0.5,
   },
   completedDay: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
   },
   dayText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: COLORS.text,
   },
   inactiveDayText: {
-    color: '#999',
+    color: COLORS.textSubtle,
   },
   inactiveCompletedDayText: {
-    color: '#fff',
+    color: COLORS.surface,
     fontWeight: 'bold',
   },
   todayText: {
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     fontWeight: 'bold',
   },
   futureDayText: {
-    color: '#ccc',
+    color: COLORS.disabled,
   },
   completedDayText: {
-    color: '#fff',
+    color: COLORS.surface,
     fontWeight: 'bold',
   },
   legend: {
     margin: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 15,
     padding: 20,
   },
   legendTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 15,
   },
   legendItems: {
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
   },
   legendIcon: {
     fontSize: 16,
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
   },
   statsPanel: {
     margin: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 15,
     padding: 20,
     marginBottom: 10,
@@ -493,7 +494,7 @@ const styles = StyleSheet.create({
   statsPanelTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -513,30 +514,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     marginHorizontal: 5,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: 10,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     marginBottom: 5,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
     textAlign: 'center',
   },
   globalStats: {
     marginTop: 10,
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
+    borderTopColor: COLORS.border,
   },
   globalStatsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -550,11 +551,11 @@ const styles = StyleSheet.create({
   globalStatNumber: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     marginBottom: 5,
   },
   globalStatLabel: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
   },
 });

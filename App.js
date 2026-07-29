@@ -13,6 +13,7 @@ import TimerScreen from './src/screens/TimerScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import BackupScreen from './src/screens/BackupScreen';
 import RootModalManager from './src/components/RootModalManager';
+import { COLORS } from './src/theme/colors';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,7 +32,7 @@ export default function App() {
       <ModalProvider>
         <>
           <NavigationContainer>
-            <StatusBar style="auto" />
+            <StatusBar style="light" backgroundColor={COLORS.primary} />
             <Tab.Navigator
               screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
@@ -51,12 +52,16 @@ export default function App() {
 
                   return <Ionicons name={iconName} size={size} color={color} />;
                 },
-                tabBarActiveTintColor: '#4A90E2',
-                tabBarInactiveTintColor: 'gray',
-                headerStyle: {
-                  backgroundColor: '#4A90E2',
+                tabBarActiveTintColor: COLORS.primaryActive,
+                tabBarInactiveTintColor: COLORS.textSubtle,
+                tabBarStyle: {
+                  backgroundColor: COLORS.surface,
+                  borderTopColor: COLORS.border,
                 },
-                headerTintColor: '#fff',
+                headerStyle: {
+                  backgroundColor: COLORS.primary,
+                },
+                headerTintColor: COLORS.surface,
                 headerTitleStyle: {
                   fontWeight: 'bold',
                 },

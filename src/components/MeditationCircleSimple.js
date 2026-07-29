@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { SESSION_TYPES } from '../types';
+import { COLORS } from '../theme/colors';
 
 export default function MeditationCircleSimple({ 
   type, 
@@ -139,10 +140,10 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -151,13 +152,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     borderWidth: 3,
-    borderColor: '#e9ecef',
+    borderColor: COLORS.border,
     position: 'relative',
     overflow: 'hidden',
   },
   completedCircle: {
-    borderColor: '#4A90E2',
-    backgroundColor: '#f0f7ff',
+    borderColor: COLORS.primaryActive,
+    backgroundColor: COLORS.primaryWash,
   },
   disabledCircle: {
     opacity: 0.5,
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(74, 144, 226, 0.3)',
+    backgroundColor: COLORS.primaryOverlay,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
   },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
     fontWeight: '500',
     marginTop: 8,
   },

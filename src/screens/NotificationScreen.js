@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useMeditation } from '../context/MeditationContext';
+import { COLORS } from '../theme/colors';
 
 export default function NotificationScreen() {
   const { settings, updateSettings } = useMeditation();
@@ -135,8 +136,8 @@ export default function NotificationScreen() {
         <Switch
           value={notificationsEnabled}
           onValueChange={handleNotificationToggle}
-          trackColor={{ false: '#767577', true: '#4A90E2' }}
-          thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
+          trackColor={{ false: COLORS.borderStrong, true: COLORS.primaryActive }}
+          thumbColor={COLORS.surface}
         />
       </View>
 
@@ -355,7 +356,7 @@ export default function NotificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
   scrollContent: {
     padding: 20,
@@ -364,19 +365,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: COLORS.primary,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 22,
   },
   settingRow: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
@@ -384,7 +385,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -396,16 +397,16 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: COLORS.text,
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: COLORS.textMuted,
     lineHeight: 18,
   },
   timeButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -413,7 +414,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    color: '#ffffff',
+    color: COLORS.surface,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -421,18 +422,18 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   disabledText: {
-    color: '#bdc3c7',
+    color: COLORS.disabled,
   },
   disabledButton: {
-    backgroundColor: '#bdc3c7',
+    backgroundColor: COLORS.disabled,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'flex-end',
   },
   pickerContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
@@ -443,20 +444,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e8ed',
+    borderBottomColor: COLORS.border,
   },
   pickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: COLORS.text,
   },
   pickerButton: {
     fontSize: 16,
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     fontWeight: '600',
   },
   infoCard: {
-    backgroundColor: '#e8f4f8',
+    backgroundColor: COLORS.primarySoft,
     borderRadius: 12,
     padding: 20,
     marginTop: 20,
@@ -464,16 +465,16 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: COLORS.text,
     marginBottom: 12,
   },
   infoText: {
     fontSize: 14,
-    color: '#34495e',
+    color: COLORS.textMuted,
     lineHeight: 20,
   },
   languageButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -483,12 +484,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   languageText: {
-    color: '#ffffff',
+    color: COLORS.surface,
     fontSize: 16,
     fontWeight: '600',
   },
   dropdownArrow: {
-    color: '#ffffff',
+    color: COLORS.surface,
     fontSize: 12,
     marginLeft: 8,
   },
@@ -506,20 +507,20 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   selectedLanguageOption: {
-    backgroundColor: '#e8f4fd',
+    backgroundColor: COLORS.primarySoft,
   },
   languageOptionText: {
     fontSize: 18,
-    color: '#2c3e50',
+    color: COLORS.text,
     fontWeight: '500',
   },
   selectedLanguageOptionText: {
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     fontWeight: '600',
   },
   checkmark: {
     fontSize: 18,
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     fontWeight: 'bold',
   },
 });

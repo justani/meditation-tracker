@@ -10,6 +10,7 @@ import Animated, {
 import Svg, { Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { SESSION_TYPES } from '../types';
+import { COLORS } from '../theme/colors';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -213,7 +214,7 @@ export default function MeditationCircle({
             cx="62"
             cy="62"
             r={CIRCLE_RADIUS}
-            stroke="#4A90E2"
+            stroke={COLORS.primaryActive}
             strokeWidth="3"
             fill="none"
             strokeDasharray={CIRCLE_CIRCUMFERENCE}
@@ -257,10 +258,10 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -269,13 +270,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     borderWidth: 3,
-    borderColor: '#e9ecef',
+    borderColor: COLORS.border,
     position: 'relative',
     overflow: 'hidden',
   },
   completedCircle: {
-    borderColor: '#4A90E2',
-    backgroundColor: '#f0f7ff',
+    borderColor: COLORS.primaryActive,
+    backgroundColor: COLORS.primaryWash,
   },
   disabledCircle: {
     opacity: 0.5,
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(74, 144, 226, 0.3)',
+    backgroundColor: COLORS.primaryOverlay,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
   },
@@ -294,8 +295,8 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(74, 144, 226, 0.2)',
-    shadowColor: '#4A90E2',
+    backgroundColor: COLORS.primaryOverlaySoft,
+    shadowColor: COLORS.primaryActive,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 10,
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
     fontWeight: '500',
     marginTop: 8,
   },

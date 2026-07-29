@@ -9,6 +9,7 @@ import {
   SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../theme/colors';
 
 const MergePreviewModal = ({ 
   visible, 
@@ -52,7 +53,7 @@ const MergePreviewModal = ({
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-            <Ionicons name="close" size={24} color="#666" />
+            <Ionicons name="close" size={24} color={COLORS.textMuted} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Merge Preview</Text>
           <View style={styles.headerSpacer} />
@@ -62,7 +63,7 @@ const MergePreviewModal = ({
           {/* Backup Info */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="cloud-download" size={20} color="#4A90E2" />
+              <Ionicons name="cloud-download" size={20} color={COLORS.primaryActive} />
               <Text style={styles.sectionTitle}>Backup Information</Text>
             </View>
             <View style={styles.infoRow}>
@@ -78,7 +79,7 @@ const MergePreviewModal = ({
           {/* Summary */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="analytics" size={20} color="#4A90E2" />
+              <Ionicons name="analytics" size={20} color={COLORS.primaryActive} />
               <Text style={styles.sectionTitle}>Merge Summary</Text>
             </View>
             <Text style={styles.summaryText}>{preview.summary}</Text>
@@ -87,7 +88,7 @@ const MergePreviewModal = ({
           {/* Session Changes */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="calendar" size={20} color="#4A90E2" />
+              <Ionicons name="calendar" size={20} color={COLORS.primaryActive} />
               <Text style={styles.sectionTitle}>Sessions</Text>
             </View>
             
@@ -130,7 +131,7 @@ const MergePreviewModal = ({
           {preview.settings.changed && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="settings" size={20} color="#4A90E2" />
+                <Ionicons name="settings" size={20} color={COLORS.primaryActive} />
                 <Text style={styles.sectionTitle}>Settings</Text>
               </View>
               
@@ -146,7 +147,7 @@ const MergePreviewModal = ({
 
           {!hasChanges && (
             <View style={styles.noChangesSection}>
-              <Ionicons name="checkmark-circle" size={48} color="#4CAF50" />
+              <Ionicons name="checkmark-circle" size={48} color={COLORS.success} />
               <Text style={styles.noChangesTitle}>No Changes Needed</Text>
               <Text style={styles.noChangesText}>
                 Your local data is already up to date with this backup.
@@ -170,7 +171,7 @@ const MergePreviewModal = ({
             onPress={onConfirm}
             disabled={loading || !hasChanges}
           >
-            <Ionicons name="checkmark" size={20} color="white" />
+            <Ionicons name="checkmark" size={20} color={COLORS.surface} />
             <Text style={styles.confirmButtonText}>
               {hasChanges ? 'Merge Data' : 'Already Up to Date'}
             </Text>
@@ -184,16 +185,16 @@ const MergePreviewModal = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: COLORS.border,
   },
   cancelButton: {
     padding: 4,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
   },
   headerSpacer: {
     width: 32,
@@ -210,12 +211,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     margin: 16,
     borderRadius: 12,
     padding: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
     marginLeft: 8,
   },
   infoRow: {
@@ -238,16 +239,16 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
   },
   infoValue: {
     fontSize: 14,
-    color: '#333',
+    color: COLORS.text,
     fontWeight: '500',
   },
   summaryText: {
     fontSize: 15,
-    color: '#333',
+    color: COLORS.text,
     lineHeight: 22,
   },
   statGrid: {
@@ -260,11 +261,11 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 4,
   },
@@ -272,33 +273,33 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: COLORS.border,
   },
   conflictHeader: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 8,
   },
   conflictItem: {
     marginBottom: 8,
     padding: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: 6,
   },
   conflictDate: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#333',
+    color: COLORS.text,
   },
   conflictReason: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
     marginTop: 2,
   },
   moreConflicts: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 4,
@@ -306,40 +307,40 @@ const styles = StyleSheet.create({
   settingChange: {
     marginBottom: 12,
     padding: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: 6,
   },
   settingKey: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: COLORS.text,
   },
   settingAction: {
     fontSize: 13,
-    color: '#666',
+    color: COLORS.textMuted,
     marginTop: 2,
   },
   settingReason: {
     fontSize: 12,
-    color: '#999',
+    color: COLORS.textSubtle,
     marginTop: 2,
   },
   noChangesSection: {
     alignItems: 'center',
     padding: 32,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     margin: 16,
     borderRadius: 12,
   },
   noChangesTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: COLORS.success,
     marginTop: 16,
   },
   noChangesText: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
@@ -347,22 +348,22 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: COLORS.border,
     gap: 12,
   },
   cancelButtonLarge: {
     flex: 1,
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: COLORS.surfaceMuted,
     alignItems: 'center',
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: COLORS.textMuted,
   },
   confirmButton: {
     flex: 2,
@@ -371,16 +372,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
     gap: 8,
   },
   confirmButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: COLORS.disabled,
   },
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: COLORS.surface,
   },
 });
 

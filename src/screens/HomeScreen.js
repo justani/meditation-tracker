@@ -7,6 +7,7 @@ import { SESSION_TYPES } from '../types';
 import MeditationCircle from '../components/MeditationCircle';
 import { getDailyQuote } from '../utils/notificationMessages';
 import { clearAllData } from '../utils/storage';
+import { COLORS } from '../theme/colors';
 
 export default function HomeScreen() {
   const { userProgress, loading, getSession, markSessionComplete, removeSessionComplete, settings, loadAppData } = useMeditation();
@@ -66,7 +67,7 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4A90E2" />
+          <ActivityIndicator size="large" color={COLORS.primaryActive} />
           <Text style={styles.loadingText}>Loading your meditation data...</Text>
         </View>
       </SafeAreaView>
@@ -152,7 +153,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 15,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
   },
   dateContainer: {
     alignItems: 'center',
@@ -177,17 +178,17 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 18,
-    color: '#333',
+    color: COLORS.text,
     fontWeight: '500',
   },
   quoteContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     marginBottom: 25,
     padding: 20,
     borderRadius: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#4A90E2',
-    shadowColor: '#000',
+    borderLeftColor: COLORS.primaryActive,
+    shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: COLORS.text,
     lineHeight: 24,
     fontStyle: 'italic',
     textAlign: 'center',
@@ -206,10 +207,10 @@ const styles = StyleSheet.create({
   streakContainer: {
     alignItems: 'center',
     marginBottom: 40,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     padding: 25,
     borderRadius: 15,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -220,18 +221,18 @@ const styles = StyleSheet.create({
   },
   streakLabel: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
     marginBottom: 8,
   },
   streakNumber: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     lineHeight: 56,
   },
   streakDays: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
     marginTop: 4,
   },
   circlesContainer: {
@@ -241,39 +242,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   instructionsContainer: {
-    backgroundColor: '#e8f4fd',
+    backgroundColor: COLORS.primarySoft,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 30,
     borderLeftWidth: 4,
-    borderLeftColor: '#4A90E2',
+    borderLeftColor: COLORS.primaryActive,
   },
   instructionsText: {
     fontSize: 14,
-    color: '#2c3e50',
+    color: COLORS.text,
     textAlign: 'center',
     fontWeight: '500',
   },
   resetButton: {
-    backgroundColor: '#ff6b6b',
+    backgroundColor: COLORS.error,
     padding: 12,
     borderRadius: 8,
     marginHorizontal: 20,
     marginBottom: 20,
   },
   resetButtonText: {
-    color: 'white',
+    color: COLORS.surface,
     textAlign: 'center',
     fontWeight: '600',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     paddingVertical: 20,
     borderRadius: 15,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -288,12 +289,12 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
     textAlign: 'center',
   },
 });

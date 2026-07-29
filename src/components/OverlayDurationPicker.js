@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SESSION_TYPES } from '../types';
+import { COLORS } from '../theme/colors';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
@@ -166,12 +167,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: COLORS.overlay,
     paddingTop: 50, // Leave space for status bar
     zIndex: 9999,
   },
   modalContainer: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
     borderRadius: 20,
     width: '100%',
     height: '100%',
@@ -183,11 +184,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: COLORS.border,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -200,15 +201,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
   },
   cancelButton: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
   },
   confirmButton: {
     fontSize: 16,
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
     fontWeight: '600',
   },
   content: {
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
   },
   instruction: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -225,9 +226,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -236,15 +237,15 @@ const styles = StyleSheet.create({
   selectedTimeText: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#4A90E2',
+    color: COLORS.primaryActive,
   },
   pickersContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 20,
     marginBottom: 30,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -256,13 +257,13 @@ const styles = StyleSheet.create({
   pickerLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginBottom: 10,
   },
   pickerSeparator: {
     width: 1,
-    backgroundColor: '#e9ecef',
+    backgroundColor: COLORS.border,
     marginHorizontal: 15,
   },
   pickerScroll: {
@@ -279,22 +280,22 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   selectedOption: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
   },
   pickerOptionText: {
     fontSize: 16,
-    color: '#333',
+    color: COLORS.text,
     textAlign: 'center',
   },
   selectedOptionText: {
-    color: '#fff',
+    color: COLORS.surface,
     fontWeight: '600',
   },
   presetContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
   presetLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: COLORS.textMuted,
     marginBottom: 12,
   },
   presetButtons: {
@@ -315,21 +316,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.surfaceMuted,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: COLORS.border,
   },
   selectedPreset: {
-    backgroundColor: '#4A90E2',
-    borderColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
+    borderColor: COLORS.primaryActive,
   },
   presetButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
     fontWeight: '500',
   },
   selectedPresetText: {
-    color: '#fff',
+    color: COLORS.surface,
   },
 });
 

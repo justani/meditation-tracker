@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMeditation } from '../context/MeditationContext';
 import { BackupService } from '../services/backupService';
 import MergePreviewModal from '../components/MergePreviewModal';
+import { COLORS } from '../theme/colors';
 
 const BackupScreen = () => {
   const { loadAppData } = useMeditation();
@@ -244,7 +245,7 @@ const BackupScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4A90E2" />
+          <ActivityIndicator size="large" color={COLORS.primaryActive} />
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
@@ -271,16 +272,16 @@ const BackupScreen = () => {
               onPress={handleGoogleSignIn}
               disabled={operationInProgress}
             >
-              <Ionicons name="logo-google" size={20} color="white" />
+              <Ionicons name="logo-google" size={20} color={COLORS.surface} />
               <Text style={styles.buttonText}>Connect to Google Drive</Text>
               {operationInProgress && (
-                <ActivityIndicator size="small" color="white" style={styles.buttonLoader} />
+                <ActivityIndicator size="small" color={COLORS.surface} style={styles.buttonLoader} />
               )}
             </TouchableOpacity>
           ) : (
             <View style={styles.authenticatedSection}>
               <View style={styles.statusContainer}>
-                <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
                 <Text style={styles.statusText}>Connected to Google Drive</Text>
               </View>
 
@@ -290,7 +291,7 @@ const BackupScreen = () => {
                   onPress={handleBackup}
                   disabled={operationInProgress}
                 >
-                  <Ionicons name="cloud-upload" size={18} color="white" />
+                  <Ionicons name="cloud-upload" size={18} color={COLORS.surface} />
                   <Text style={styles.actionButtonText}>Create Backup</Text>
                 </TouchableOpacity>
 
@@ -299,7 +300,7 @@ const BackupScreen = () => {
                   onPress={handleSignOut}
                   disabled={operationInProgress}
                 >
-                  <Ionicons name="log-out" size={18} color="#666" />
+                  <Ionicons name="log-out" size={18} color={COLORS.textMuted} />
                   <Text style={styles.secondaryButtonText}>Sign Out</Text>
                 </TouchableOpacity>
               </View>
@@ -312,7 +313,7 @@ const BackupScreen = () => {
             <Text style={styles.sectionTitle}>Your Backups</Text>
             {backups.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="cloud-outline" size={48} color="#ccc" />
+                <Ionicons name="cloud-outline" size={48} color={COLORS.disabled} />
                 <Text style={styles.emptyStateText}>No backups found</Text>
                 <Text style={styles.emptyStateSubtext}>Create your first backup above</Text>
               </View>
@@ -329,14 +330,14 @@ const BackupScreen = () => {
                       onPress={() => handleRestore(backup)}
                       disabled={operationInProgress}
                     >
-                      <Ionicons name="git-merge" size={20} color="#4A90E2" />
+                      <Ionicons name="git-merge" size={20} color={COLORS.primaryActive} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.iconButton}
                       onPress={() => handleDeleteBackup(backup)}
                       disabled={operationInProgress}
                     >
-                      <Ionicons name="trash" size={20} color="#f44336" />
+                      <Ionicons name="trash" size={20} color={COLORS.error} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -349,15 +350,15 @@ const BackupScreen = () => {
           <Text style={styles.sectionTitle}>About Backups</Text>
           <View style={styles.infoList}>
             <View style={styles.infoItem}>
-              <Ionicons name="shield-checkmark" size={16} color="#4CAF50" />
+              <Ionicons name="shield-checkmark" size={16} color={COLORS.success} />
               <Text style={styles.infoText}>Your data is stored privately in your Google Drive</Text>
             </View>
             <View style={styles.infoItem}>
-              <Ionicons name="time" size={16} color="#4CAF50" />
+              <Ionicons name="time" size={16} color={COLORS.success} />
               <Text style={styles.infoText}>Backups include all your meditation sessions and progress</Text>
             </View>
             <View style={styles.infoItem}>
-              <Ionicons name="sync" size={16} color="#4CAF50" />
+              <Ionicons name="sync" size={16} color={COLORS.success} />
               <Text style={styles.infoText}>Restore your data on any device by signing in</Text>
             </View>
           </View>
@@ -367,7 +368,7 @@ const BackupScreen = () => {
       {operationInProgress && (
         <View style={styles.overlay}>
           <View style={styles.overlayContent}>
-            <ActivityIndicator size="large" color="#4A90E2" />
+            <ActivityIndicator size="large" color={COLORS.primaryActive} />
             <Text style={styles.overlayText}>Processing...</Text>
           </View>
         </View>
@@ -387,7 +388,7 @@ const BackupScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -400,15 +401,15 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
   },
   section: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     margin: 16,
     borderRadius: 12,
     padding: 20,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -416,17 +417,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: COLORS.text,
     marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
     marginBottom: 16,
     lineHeight: 20,
   },
   primaryButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: {
-    color: 'white',
+    color: COLORS.surface,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -450,12 +451,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    backgroundColor: '#f0f8f0',
+    backgroundColor: COLORS.primarySoft,
     borderRadius: 8,
   },
   statusText: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: COLORS.success,
     fontWeight: '500',
   },
   buttonRow: {
@@ -464,7 +465,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: '#4A90E2',
+    backgroundColor: COLORS.primaryActive,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -473,13 +474,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   actionButtonText: {
-    color: 'white',
+    color: COLORS.surface,
     fontSize: 14,
     fontWeight: '500',
   },
   secondaryButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: COLORS.surfaceMuted,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   secondaryButtonText: {
-    color: '#666',
+    color: COLORS.textMuted,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -498,13 +499,13 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
     marginTop: 16,
     fontWeight: '500',
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: COLORS.textSubtle,
     marginTop: 4,
   },
   backupItem: {
@@ -512,7 +513,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.surfaceMuted,
     borderRadius: 8,
     marginBottom: 8,
   },
@@ -522,11 +523,11 @@ const styles = StyleSheet.create({
   backupDate: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: COLORS.text,
   },
   backupSize: {
     fontSize: 12,
-    color: '#666',
+    color: COLORS.textMuted,
     marginTop: 2,
   },
   backupActions: {
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textMuted,
     lineHeight: 20,
   },
   overlay: {
@@ -556,12 +557,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   overlayContent: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
   overlayText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.textMuted,
   },
 });
 
