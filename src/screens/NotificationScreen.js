@@ -332,26 +332,11 @@ export default function NotificationScreen() {
       )}
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>🧘‍♂️ About Your Reminders</Text>
+        <Text style={styles.infoTitle}>🧘‍♂️ Reminder Schedule</Text>
         <Text style={styles.infoText}>
-          • Morning notifications feature inspiring Vipassana wisdom{'\n'}
-          • Morning messages focus on determination and presence{'\n'}
-          • Evening reminders tell you when no meditation is logged{'\n'}
-          • If the day is still unlogged, 10 PM and 11 PM reminders ask for at least 10 minutes{'\n'}
-          • Tap Start now in any reminder to begin a 10-minute meditation{'\n'}
-          • Tap Later to leave the reminder for later without opening the app{'\n'}
-          • Logging any meditation cancels the remaining reminders for that day{'\n'}
-          • Notifications scheduled for the next 30 days with variety
-        </Text>
-      </View>
-
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>💡 Practice Tips</Text>
-        <Text style={styles.infoText}>
-          • Choose times when you're most likely to be available{'\n'}
-          • Morning sessions help set a positive tone for the day{'\n'}
-          • Evening sessions help you unwind and reflect{'\n'}
-          • You can always adjust these times later
+          If you haven't meditated, we'll remind you at your evening time, 10 PM, and 11 PM.
+          Logging a session stops the remaining reminders. Tap Start now to begin a 10-minute
+          meditation.
         </Text>
       </View>
       </ScrollView>
