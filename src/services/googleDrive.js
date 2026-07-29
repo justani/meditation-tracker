@@ -146,14 +146,15 @@ export class GoogleDriveService {
     }
   }
 
-  static async createBackupData(sessions, progress) {
+  static async createBackupData(sessions, progress, settings) {
     return {
-      version: '1.0',
+      version: '1.1',
       timestamp: new Date().toISOString(),
       app: 'meditation-tracker',
       data: {
         sessions,
         progress,
+        settings,
         exported_at: new Date().toISOString()
       }
     };

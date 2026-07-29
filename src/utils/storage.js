@@ -142,6 +142,16 @@ export const loadBackupState = async () => {
   }
 };
 
+export const clearBackupState = async () => {
+  try {
+    await AsyncStorage.removeItem(KEYS.BACKUP_STATE);
+    return true;
+  } catch (error) {
+    console.error('Error clearing backup state:', error);
+    return false;
+  }
+};
+
 // Data Management
 export const clearAllData = async () => {
   try {

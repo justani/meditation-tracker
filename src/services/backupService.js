@@ -8,8 +8,8 @@ import {
   loadAppSettings,
   loadBackupState,
   saveBackupState,
-  saveAllData,
-  clearAllData
+  clearBackupState,
+  saveAllData
 } from '../utils/storage';
 
 const AUTO_BACKUP_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000;
@@ -35,8 +35,19 @@ const sortForSignature = (value) => {
   return value;
 };
 
-const notifyBackupStateListeners = (backupState) => {
-  backupStateListeners.forEach(listener => listener(backupState));
+const EMPTY_BACKUP_STATE = {
+  lastSuccessfulBackupAt: null,
+  lastContentSignature: null
+};
+
+const notifyBackupStateListeners = (backupState, event = {}) => {
+  backupStateListeners.forEach(listener => {
+    try {
+      listener(backupState, event);
+    } catch (error) {
+      console.error('Backup state listener failed:', error);
+    }
+  });
 };
 
 export class BackupService {
@@ -49,8 +60,9 @@ export class BackupService {
       ]);
 
       const backupData = await GoogleDriveService.createBackupData(
-        sessions, 
-        { ...progress, settings }
+        sessions,
+        progress,
+        settings
       );
 
       return backupData;
@@ -60,10 +72,29 @@ export class BackupService {
     }
   }
 
+  static normalizeBackupData(backupData) {
+    const data = backupData.data || {};
+    const storedProgress = data.progress && typeof data.progress === 'object'
+      ? data.progress
+      : {};
+    const { settings: legacySettings, ...progress } = storedProgress;
+
+    return {
+      ...data,
+      sessions: Array.isArray(data.sessions) ? data.sessions : [],
+      progress,
+      settings: data.settings || legacySettings || {},
+      timestamp: backupData.timestamp,
+      version: backupData.version
+    };
+  }
+
   static async createContentSignature(backupData) {
+    const normalizedData = this.normalizeBackupData(backupData);
     const signatureData = {
-      sessions: backupData.data.sessions,
-      progress: backupData.data.progress
+      sessions: normalizedData.sessions,
+      progress: normalizedData.progress,
+      settings: normalizedData.settings
     };
     const serializedData = JSON.stringify(sortForSignature(signatureData));
 
@@ -109,17 +140,19 @@ export class BackupService {
       console.log('Upload result:', result);
 
       if (result.success) {
+        const backupCompletedAt = new Date().toISOString();
         const updatedBackupState = {
-          lastSuccessfulBackupAt: new Date().toISOString(),
+          lastSuccessfulBackupAt: backupCompletedAt,
           lastContentSignature: contentSignature
         };
         await saveBackupState(updatedBackupState);
-        notifyBackupStateListeners(updatedBackupState);
 
         const retentionResult = await this.pruneOldBackups();
         if (!retentionResult.success) {
           console.warn('Backup succeeded, but old backups could not be pruned:', retentionResult.error);
         }
+
+        notifyBackupStateListeners(updatedBackupState, { backupListChanged: true });
       }
 
       return result;
@@ -233,7 +266,8 @@ export class BackupService {
       const localData = { sessions, progress, settings };
 
       // Generate merge preview
-      const preview = DataMergeService.generateMergePreview(localData, backupData.data);
+      const normalizedBackupData = this.normalizeBackupData(backupData);
+      const preview = DataMergeService.generateMergePreview(localData, normalizedBackupData);
 
       return { success: true, preview };
     } catch (error) {
@@ -276,7 +310,8 @@ export class BackupService {
       console.log('Safety backup created before merge');
 
       // Perform smart merge
-      const mergeResult = await DataMergeService.performMerge(localData, backupData.data);
+      const normalizedBackupData = this.normalizeBackupData(backupData);
+      const mergeResult = await DataMergeService.performMerge(localData, normalizedBackupData);
       
       if (!mergeResult.success) {
         throw new Error(mergeResult.error);
@@ -328,6 +363,10 @@ export class BackupService {
   static async authenticateWithGoogle() {
     try {
       const result = await GoogleAuthService.authenticate();
+      if (result.success) {
+        await clearBackupState();
+        notifyBackupStateListeners(EMPTY_BACKUP_STATE);
+      }
       return result;
     } catch (error) {
       console.error('Google authentication failed:', error);
@@ -337,7 +376,13 @@ export class BackupService {
 
   static async signOutFromGoogle() {
     try {
-      await GoogleAuthService.signOut();
+      const signedOut = await GoogleAuthService.signOut();
+      if (!signedOut) {
+        throw new Error('Google sign out failed');
+      }
+
+      await clearBackupState();
+      notifyBackupStateListeners(EMPTY_BACKUP_STATE);
       return { success: true };
     } catch (error) {
       console.error('Google sign out failed:', error);

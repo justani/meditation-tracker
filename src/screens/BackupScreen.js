@@ -33,8 +33,11 @@ const BackupScreen = () => {
     checkAuthStatus();
     loadBackupState();
 
-    const unsubscribe = BackupService.subscribeToBackupState(backupState => {
+    const unsubscribe = BackupService.subscribeToBackupState((backupState, event) => {
       setLastBackupAt(backupState.lastSuccessfulBackupAt);
+      if (event.backupListChanged) {
+        loadBackups({ showError: false });
+      }
     });
     const appStateSubscription = AppState.addEventListener('change', nextAppState => {
       if (nextAppState === 'active') {
@@ -68,17 +71,19 @@ const BackupScreen = () => {
     }
   };
 
-  const loadBackups = async () => {
+  const loadBackups = async ({ showError = true } = {}) => {
     try {
       const result = await BackupService.listBackups();
       if (result.success) {
         setBackups(result.files);
-      } else {
+      } else if (showError) {
         Alert.alert('Error', 'Failed to load backups: ' + result.error);
       }
     } catch (error) {
       console.error('Error loading backups:', error);
-      Alert.alert('Error', 'Failed to load backups');
+      if (showError) {
+        Alert.alert('Error', 'Failed to load backups');
+      }
     }
   };
 
@@ -88,8 +93,19 @@ const BackupScreen = () => {
       const result = await BackupService.authenticateWithGoogle();
       if (result.success) {
         setIsAuthenticated(true);
+        let backupResult = await BackupService.uploadBackup();
+        if (backupResult.skipped) {
+          backupResult = await BackupService.uploadBackup();
+        }
         await loadBackups();
-        Alert.alert('Success', 'Successfully connected to Google Drive');
+        if (backupResult.success) {
+          Alert.alert('Success', 'Connected to Google Drive and created your first backup.');
+        } else {
+          Alert.alert(
+            'Connected to Google Drive',
+            'The first backup could not be created. The app will try again next time it opens.'
+          );
+        }
       } else {
         Alert.alert('Error', 'Failed to connect to Google Drive: ' + result.error);
       }
@@ -113,10 +129,14 @@ const BackupScreen = () => {
           onPress: async () => {
             setOperationInProgress(true);
             try {
-              await BackupService.signOutFromGoogle();
-              setIsAuthenticated(false);
-              setBackups([]);
-              Alert.alert('Success', 'Signed out successfully');
+              const result = await BackupService.signOutFromGoogle();
+              if (result.success) {
+                setIsAuthenticated(false);
+                setBackups([]);
+                Alert.alert('Success', 'Signed out successfully');
+              } else {
+                Alert.alert('Error', 'Failed to sign out: ' + result.error);
+              }
             } catch (error) {
               console.error('Error signing out:', error);
               Alert.alert('Error', 'Failed to sign out');
@@ -137,7 +157,6 @@ const BackupScreen = () => {
         if (result.skipped) {
           Alert.alert('Up to Date', 'Your meditation data has not changed since the last backup.');
         } else {
-          await loadBackups();
           Alert.alert('Success', `Backup created successfully: ${result.fileName}`);
         }
       } else {
