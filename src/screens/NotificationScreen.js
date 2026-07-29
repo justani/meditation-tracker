@@ -89,8 +89,7 @@ export default function NotificationScreen() {
 
   const handleTimeChange = async (type, selectedTime) => {
     if (Platform.OS === 'android') {
-      setShowMorningPicker(false);
-      setShowEveningPicker(false);
+      handleTimePickerDismiss(type);
     }
 
     if (!selectedTime) return;
@@ -103,6 +102,14 @@ export default function NotificationScreen() {
     } else {
       setEveningTime(selectedTime);
       await updateSettings({ eveningReminderTime: timeString });
+    }
+  };
+
+  const handleTimePickerDismiss = (type) => {
+    if (type === 'morning') {
+      setShowMorningPicker(false);
+    } else {
+      setShowEveningPicker(false);
     }
   };
 
@@ -224,7 +231,8 @@ export default function NotificationScreen() {
                     value={morningTime}
                     mode="time"
                     display="spinner"
-                    onChange={(_, selectedTime) => handleTimeChange('morning', selectedTime)}
+                    onValueChange={(_, selectedTime) => handleTimeChange('morning', selectedTime)}
+                    onDismiss={() => handleTimePickerDismiss('morning')}
                   />
                 </View>
               </View>
@@ -248,7 +256,8 @@ export default function NotificationScreen() {
                     value={eveningTime}
                     mode="time"
                     display="spinner"
-                    onChange={(_, selectedTime) => handleTimeChange('evening', selectedTime)}
+                    onValueChange={(_, selectedTime) => handleTimeChange('evening', selectedTime)}
+                    onDismiss={() => handleTimePickerDismiss('evening')}
                   />
                 </View>
               </View>
@@ -318,7 +327,8 @@ export default function NotificationScreen() {
           value={morningTime}
           mode="time"
           display="default"
-          onChange={(_, selectedTime) => handleTimeChange('morning', selectedTime)}
+          onValueChange={(_, selectedTime) => handleTimeChange('morning', selectedTime)}
+          onDismiss={() => handleTimePickerDismiss('morning')}
         />
       )}
 
@@ -327,7 +337,8 @@ export default function NotificationScreen() {
           value={eveningTime}
           mode="time"
           display="default"
-          onChange={(_, selectedTime) => handleTimeChange('evening', selectedTime)}
+          onValueChange={(_, selectedTime) => handleTimeChange('evening', selectedTime)}
+          onDismiss={() => handleTimePickerDismiss('evening')}
         />
       )}
 
