@@ -336,6 +336,8 @@ export default function NotificationScreen() {
           • Morning messages focus on determination and presence{'\n'}
           • Evening reminders tell you when no meditation is logged{'\n'}
           • If the day is still unlogged, 10 PM and 11 PM reminders ask for at least 10 minutes{'\n'}
+          • Tap Start now in any reminder to begin a 10-minute meditation{'\n'}
+          • Tap Later to leave the reminder for later without opening the app{'\n'}
           • Logging any meditation cancels the remaining reminders for that day{'\n'}
           • Notifications scheduled for the next 30 days with variety
         </Text>

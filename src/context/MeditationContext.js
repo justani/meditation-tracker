@@ -16,6 +16,11 @@ import {
   getRandomNotificationMessage,
   getNotificationTitle,
 } from '../utils/notificationMessages';
+import {
+  configureReminderNotificationActions,
+  REMINDER_CATEGORY_ID,
+  REMINDER_NOTIFICATION_KIND,
+} from '../services/reminderNotificationService';
 
 const REMINDER_PREFIX = 'meditation-reminder-';
 const INCOMPLETE_DAY_REMINDER_TYPES = ['evening', 'late-22', 'late-23'];
@@ -225,6 +230,8 @@ export const MeditationProvider = ({ children }) => {
       const currentSessions = sessionsOverride || state.sessions;
       if (!currentSettings.notificationsEnabled) return;
 
+      await configureReminderNotificationActions();
+
       const { morningReminderTime, eveningReminderTime } = currentSettings;
 
       // Schedule multiple notifications for variety (next 30 days)
@@ -251,6 +258,8 @@ export const MeditationProvider = ({ children }) => {
                 title: getNotificationTitle('morning', currentSettings.language),
                 body: getRandomNotificationMessage('morning', currentSettings.language),
                 sound: true,
+                categoryIdentifier: REMINDER_CATEGORY_ID,
+                data: { kind: REMINDER_NOTIFICATION_KIND },
               },
               trigger: {
                 type: 'date',
@@ -274,6 +283,8 @@ export const MeditationProvider = ({ children }) => {
                 title: getNotificationTitle('evening', currentSettings.language),
                 body: getIncompleteDayNotificationMessage('evening', currentSettings.language),
                 sound: true,
+                categoryIdentifier: REMINDER_CATEGORY_ID,
+                data: { kind: REMINDER_NOTIFICATION_KIND },
               },
               trigger: {
                 type: 'date',
@@ -296,6 +307,8 @@ export const MeditationProvider = ({ children }) => {
                   title: getNotificationTitle('late', currentSettings.language),
                   body: getIncompleteDayNotificationMessage('late', currentSettings.language),
                   sound: true,
+                  categoryIdentifier: REMINDER_CATEGORY_ID,
+                  data: { kind: REMINDER_NOTIFICATION_KIND },
                 },
                 trigger: {
                   type: 'date',

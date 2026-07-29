@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { createNavigationContainerRef, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,8 +16,28 @@ import BackupScreen from './src/screens/BackupScreen';
 import RootModalManager from './src/components/RootModalManager';
 import { BackupService } from './src/services/backupService';
 import { COLORS } from './src/theme/colors';
+import {
+  REMINDER_NOTIFICATION_KIND,
+  REMINDER_START_ACTION_ID,
+  REMINDER_START_DURATION_MINUTES,
+} from './src/services/reminderNotificationService';
 
 const Tab = createBottomTabNavigator();
+const navigationRef = createNavigationContainerRef();
+let pendingTimerStart = null;
+
+const openTimerFromNotification = (timerStart) => {
+  if (!navigationRef.isReady()) {
+    pendingTimerStart = timerStart;
+    return;
+  }
+
+  navigationRef.navigate('Timer', {
+    notificationStartRequestId: timerStart.requestId,
+    notificationStartDuration: REMINDER_START_DURATION_MINUTES,
+  });
+  pendingTimerStart = null;
+};
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,6 +47,43 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+const NotificationResponseManager = () => {
+  const handledResponsesRef = useRef(new Set());
+
+  useEffect(() => {
+    const handleResponse = (response) => {
+      if (
+        !response
+        || response.actionIdentifier !== REMINDER_START_ACTION_ID
+        || response.notification.request.content.data?.kind !== REMINDER_NOTIFICATION_KIND
+      ) {
+        return;
+      }
+
+      const requestId = response.notification.request.identifier;
+      const responseKey = `${requestId}:${response.actionIdentifier}`;
+      if (handledResponsesRef.current.has(responseKey)) return;
+
+      handledResponsesRef.current.add(responseKey);
+      openTimerFromNotification({ requestId });
+      Notifications.clearLastNotificationResponseAsync().catch(error => {
+        console.error('Error clearing handled notification response:', error);
+      });
+    };
+
+    Notifications.getLastNotificationResponseAsync()
+      .then(handleResponse)
+      .catch(error => {
+        console.error('Error reading initial notification response:', error);
+      });
+    const subscription = Notifications.addNotificationResponseReceivedListener(handleResponse);
+
+    return () => subscription.remove();
+  }, []);
+
+  return null;
+};
 
 const AutomaticBackupManager = () => {
   const { loading } = useMeditation();
@@ -69,9 +126,15 @@ export default function App() {
   return (
     <MeditationProvider>
       <AutomaticBackupManager />
+      <NotificationResponseManager />
       <ModalProvider>
         <>
-          <NavigationContainer>
+          <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+              if (pendingTimerStart) openTimerFromNotification(pendingTimerStart);
+            }}
+          >
             <StatusBar style="light" />
             <Tab.Navigator
               screenOptions={({ route }) => ({

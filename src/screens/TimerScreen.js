@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   AppState,
@@ -55,7 +55,7 @@ const formatAccessibilityTime = (milliseconds, isOvertime) => {
   return `${parts.join(' ')} ${isOvertime ? 'overtime' : 'remaining'}`;
 };
 
-export default function TimerScreen() {
+export default function TimerScreen({ route }) {
   const { recordTimerSession } = useMeditation();
   const [selectedDuration, setSelectedDuration] = useState(20);
   const [activeTimer, setActiveTimer] = useState(null);
@@ -63,6 +63,8 @@ export default function TimerScreen() {
   const [isStarting, setIsStarting] = useState(false);
   const [isTestingChime, setIsTestingChime] = useState(false);
   const [alarmAccessAvailable, setAlarmAccessAvailable] = useState(true);
+  const [timerRestored, setTimerRestored] = useState(false);
+  const handledNotificationStartRef = useRef(null);
 
   const restoreTimer = useCallback(async () => {
     const storedTimer = await loadActiveMeditationTimer();
@@ -79,6 +81,7 @@ export default function TimerScreen() {
     }
     setActiveTimer(storedTimer);
     setNow(Date.now());
+    setTimerRestored(true);
   }, []);
 
   useEffect(() => {
@@ -112,11 +115,13 @@ export default function TimerScreen() {
     }
   };
 
-  const handleStart = async () => {
+  const handleStart = async (durationOverride = null) => {
+    const durationToStart = durationOverride || selectedDuration;
+    if (durationOverride) setSelectedDuration(durationOverride);
     setIsStarting(true);
 
     try {
-      const timer = await startMeditationTimer(selectedDuration);
+      const timer = await startMeditationTimer(durationToStart);
       setActiveTimer(timer);
       setAlarmAccessAvailable(true);
       setNow(Date.now());
@@ -145,6 +150,28 @@ export default function TimerScreen() {
       setIsStarting(false);
     }
   };
+
+  useEffect(() => {
+    const requestId = route?.params?.notificationStartRequestId;
+    const requestedDuration = route?.params?.notificationStartDuration;
+
+    if (
+      !timerRestored
+      || activeTimer
+      || !requestId
+      || handledNotificationStartRef.current === requestId
+    ) {
+      return;
+    }
+
+    handledNotificationStartRef.current = requestId;
+    handleStart(requestedDuration);
+  }, [
+    activeTimer,
+    route?.params?.notificationStartDuration,
+    route?.params?.notificationStartRequestId,
+    timerRestored,
+  ]);
 
   const handleTestChime = async () => {
     setIsTestingChime(true);
@@ -325,7 +352,7 @@ export default function TimerScreen() {
                 styles.startButton,
                 (pressed || isStarting) && styles.buttonPressed,
               ]}
-              onPress={handleStart}
+              onPress={() => handleStart()}
             >
               <Text style={styles.startButtonText}>
                 {isStarting ? 'Preparing timer…' : `Start ${selectedDuration}-minute timer`}
