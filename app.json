@@ -35,6 +35,8 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/notification-icon.png",
+          "color": "#C7A76A",
           "sounds": [
             "./assets/meditation_chime.wav"
           ]
