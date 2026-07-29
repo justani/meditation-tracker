@@ -133,7 +133,6 @@ export default function MeditationCircle({
   
   const circleStyle = [
     styles.circle,
-    completed && { borderColor: sessionColor },
     disabled && styles.disabledCircle
   ];
   
@@ -229,23 +228,25 @@ export default function MeditationCircle({
           />
         </Svg>
         
-        <Animated.View style={[circleStyle, animatedCircleStyle]}>
-          {/* Confirmed-state wash */}
-          <Animated.View
-            style={[
-              styles.completionWash,
-              { backgroundColor: sessionOverlay },
-              completionWashAnimatedStyle,
-            ]}
-          />
-          
-          {/* Icon */}
-          <View style={styles.icon}>
-            <SessionIcon
-              isMorning={isMorning}
-              color={sessionColor}
-              size={completed ? 38 : 34}
+        <Animated.View style={[styles.shadowContainer, animatedCircleStyle]}>
+          <View style={circleStyle}>
+            {/* Confirmed-state wash */}
+            <Animated.View
+              style={[
+                styles.completionWash,
+                { backgroundColor: sessionOverlay },
+                completionWashAnimatedStyle,
+              ]}
             />
+
+            {/* Icon */}
+            <View style={styles.icon}>
+              <SessionIcon
+                isMorning={isMorning}
+                color={sessionColor}
+                size={completed ? 38 : 34}
+              />
+            </View>
           </View>
         </Animated.View>
       </View>
@@ -268,13 +269,11 @@ const styles = StyleSheet.create({
     top: -2,
     left: -2,
   },
-  circle: {
+  shadowContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
     backgroundColor: COLORS.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
     shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
@@ -283,7 +282,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-    borderWidth: 3,
+  },
+  circle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
     borderColor: COLORS.border,
     position: 'relative',
     overflow: 'hidden',
