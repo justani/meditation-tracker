@@ -82,7 +82,6 @@ export class GoogleDriveService {
       }
 
       const result = await response.json();
-      console.log('List backups result:', result);
       return { success: true, files: result.files || [] };
     } catch (error) {
       console.error('Failed to list backups:', error);

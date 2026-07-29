@@ -14,10 +14,7 @@ const RootModalManager = () => {
           <OverlayDurationPicker
             visible={modalState.visible}
             sessionType={modalState.props.sessionType}
-            onClose={() => {
-              console.log('🔴 Modal onClose called');
-              hideModal();
-            }}
+            onClose={hideModal}
             onConfirm={modalState.props.onConfirm}
             onCancel={() => {
               if (modalState.props.onCancel) {

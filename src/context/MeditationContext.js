@@ -616,7 +616,6 @@ export const MeditationProvider = ({ children }) => {
         : state.sessions.find(session => session.date === date && session.type === type);
       
       if (!sessionToRemove) {
-        console.log('Session not found for removal:', { date, type, sessionId });
         return false;
       }
       
@@ -641,7 +640,6 @@ export const MeditationProvider = ({ children }) => {
 
       await scheduleNotifications(null, updatedSessions);
       
-      console.log('Session removed successfully:', sessionToRemove.id);
       return true;
     } catch (error) {
       console.error('Error removing session:', error);

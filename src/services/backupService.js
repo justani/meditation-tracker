@@ -137,7 +137,6 @@ export class BackupService {
       }
 
       const result = await GoogleDriveService.uploadBackup(backupData);
-      console.log('Upload result:', result);
 
       if (result.success) {
         const backupCompletedAt = new Date().toISOString();
@@ -307,7 +306,6 @@ export class BackupService {
 
       // Create safety backup first
       const safetyBackup = await this.createFullBackup();
-      console.log('Safety backup created before merge');
 
       // Perform smart merge
       const normalizedBackupData = this.normalizeBackupData(backupData);

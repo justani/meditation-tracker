@@ -142,14 +142,12 @@ export default function HomeScreen() {
           <MeditationCircle
             type={SESSION_TYPES.MORNING}
             completed={morningSession?.completed || false}
-            onPress={() => console.log('Morning circle pressed')}
             onLongPress={() => handleSessionToggle(SESSION_TYPES.MORNING)}
           />
           
           <MeditationCircle
             type={SESSION_TYPES.EVENING}
             completed={eveningSession?.completed || false}
-            onPress={() => console.log('Evening circle pressed')}
             onLongPress={() => handleSessionToggle(SESSION_TYPES.EVENING)}
           />
         </View>
