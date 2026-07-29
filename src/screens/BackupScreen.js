@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   AppState,
-  RefreshControl
+  RefreshControl,
+  Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,8 @@ import { useMeditation } from '../context/MeditationContext';
 import { BackupService } from '../services/backupService';
 import MergePreviewModal from '../components/MergePreviewModal';
 import { COLORS } from '../theme/colors';
+
+const PRIVACY_POLICY_URL = 'https://justani.github.io/meditation-tracker/privacy-policy/';
 
 const BackupScreen = () => {
   const { loadAppData } = useMeditation();
@@ -423,6 +426,14 @@ const BackupScreen = () => {
               <Ionicons name="albums" size={16} color={COLORS.success} />
               <Text style={styles.infoText}>Your latest 20 backups are kept</Text>
             </View>
+            <TouchableOpacity
+              style={styles.infoItem}
+              accessibilityRole="link"
+              onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+            >
+              <Ionicons name="document-text" size={16} color={COLORS.primaryInk} />
+              <Text style={styles.privacyPolicyLink}>Read our Privacy Policy</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -620,6 +631,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textMuted,
     lineHeight: 20,
+  },
+  privacyPolicyLink: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.primaryInk,
+    lineHeight: 20,
+    textDecorationLine: 'underline',
   },
   overlay: {
     position: 'absolute',

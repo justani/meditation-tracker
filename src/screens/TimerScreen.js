@@ -26,7 +26,7 @@ import {
 } from '../services/meditationTimerService';
 
 const ANDROID_EXACT_ALARM_SETTINGS = 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM';
-const ANDROID_PACKAGE = 'com.meditationtracker.app';
+const ANDROID_PACKAGE = 'com.vipassana.meditationtracker';
 
 const formatTime = (milliseconds) => {
   const absoluteSeconds = milliseconds > 0

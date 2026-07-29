@@ -6,9 +6,9 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "scheme": "com.meditationtracker.app",
+    "scheme": "com.vipassana.meditationtracker",
     "android": {
-      "package": "com.meditationtracker.app",
+      "package": "com.vipassana.meditationtracker",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#B45309"
