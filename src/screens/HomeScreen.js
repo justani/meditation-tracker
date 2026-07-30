@@ -156,7 +156,7 @@ export default function HomeScreen() {
         {isFirstTimeUser && (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsText}>
-              💡 Hold and press each circle to mark your meditation complete
+              💡 Press and hold each circle to mark your meditation complete
             </Text>
           </View>
         )}

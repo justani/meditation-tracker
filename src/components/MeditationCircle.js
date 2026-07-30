@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { 
   useSharedValue, 
+  useAnimatedProps,
   useAnimatedStyle, 
   withTiming, 
   withSpring,
@@ -117,7 +118,7 @@ export default function MeditationCircle({
     };
   });
   
-  const progressRingStyle = useAnimatedStyle(() => {
+  const progressRingAnimatedProps = useAnimatedProps(() => {
     const strokeDashoffset = interpolate(
       longPressProgress.value,
       [0, 1],
@@ -224,7 +225,7 @@ export default function MeditationCircle({
             strokeDasharray={CIRCLE_CIRCUMFERENCE}
             strokeLinecap="round"
             transform="rotate(-90 62 62)"
-            animatedProps={progressRingStyle}
+            animatedProps={progressRingAnimatedProps}
           />
         </Svg>
         
