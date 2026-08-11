@@ -12,9 +12,12 @@ import {
 } from '../utils/storage';
 import { createMeditationSession, createUserProgress, createAppSettings, SESSION_TYPES } from '../types';
 import {
+  getDailyBuddhaTeaching,
+  getDailyTeachingNotificationDate,
   getIncompleteDayNotificationMessage,
   getRandomNotificationMessage,
   getNotificationTitle,
+  getTeachingNotificationTitle,
 } from '../utils/notificationMessages';
 import {
   configureReminderNotificationActions,
@@ -239,6 +242,24 @@ export const MeditationProvider = ({ children }) => {
         targetDate.setDate(today.getDate() + day);
         const targetDateString = getLocalDateString(targetDate);
         const meditationAlreadyLogged = hasCompletedSessionForDate(currentSessions, targetDateString);
+
+        // Send one sourced teaching at a stable, date-specific random time
+        // between noon and 5:59 PM. Rescheduling will not move it around.
+        const teachingDate = getDailyTeachingNotificationDate(targetDate);
+        if (teachingDate > new Date()) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: `${REMINDER_PREFIX}teaching-${targetDateString}`,
+            content: {
+              title: getTeachingNotificationTitle(currentSettings.language),
+              body: getDailyBuddhaTeaching(targetDate, currentSettings.language),
+              sound: true,
+            },
+            trigger: {
+              type: 'date',
+              date: teachingDate,
+            },
+          });
+        }
 
         // Schedule morning notification
         if (morningReminderTime) {

@@ -1,3 +1,7 @@
+import { BUDDHA_TEACHINGS } from './buddhaTeachings';
+
+export { BUDDHA_TEACHINGS };
+
 // Vipassana meditation notification messages
 // Organized by categories and time of day
 
@@ -109,6 +113,53 @@ export const NOTIFICATION_MESSAGES = {
   },
 };
 
+const hashString = (value) => {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const getDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const getDailyBuddhaTeaching = (date, language = 'english') => {
+  const teachings = BUDDHA_TEACHINGS[language] || BUDDHA_TEACHINGS.english;
+  const localDayNumber = Math.floor(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  ) / (24 * 60 * 60 * 1000));
+  const position = localDayNumber % teachings.length;
+  const order = teachings.map((_, index) => index);
+  let randomState = hashString(`${language}-teaching-order-v1`);
+
+  for (let index = order.length - 1; index > 0; index--) {
+    randomState = (Math.imul(randomState, 1664525) + 1013904223) >>> 0;
+    const swapIndex = randomState % (index + 1);
+    [order[index], order[swapIndex]] = [order[swapIndex], order[index]];
+  }
+
+  return teachings[order[position]];
+};
+
+export const getDailyTeachingNotificationDate = (date) => {
+  const notificationDate = new Date(date);
+  const minutesAfterNoon = hashString(`${getDateKey(date)}-time`) % (6 * 60);
+  notificationDate.setHours(12, minutesAfterNoon, 0, 0);
+  return notificationDate;
+};
+
+export const getTeachingNotificationTitle = (language = 'english') => (
+  language === 'hindi' ? 'आज का धम्म विचार' : 'Today\'s Dhamma Teaching'
+);
+
 // Function to get a random message for a specific time
 export const getRandomNotificationMessage = (type, language = 'english') => {
   const languageMessages = NOTIFICATION_MESSAGES[language] || NOTIFICATION_MESSAGES.english;
@@ -161,9 +212,11 @@ export const getDefaultNotificationBody = (type, language = 'english') => {
 // Combined quotes pool for homepage display
 export const getAllQuotes = (language = 'english') => {
   const languageMessages = NOTIFICATION_MESSAGES[language] || NOTIFICATION_MESSAGES.english;
+  const teachings = BUDDHA_TEACHINGS[language] || BUDDHA_TEACHINGS.english;
   return [
     ...languageMessages.morning,
     ...languageMessages.evening,
+    ...teachings,
   ];
 };
 

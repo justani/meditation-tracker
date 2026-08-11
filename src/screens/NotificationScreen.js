@@ -131,7 +131,7 @@ export default function NotificationScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Meditation Reminders</Text>
         <Text style={styles.subtitle}>
-          Set daily reminders for your meditation practice
+          Set practice reminders and receive one Dhamma teaching each afternoon
         </Text>
 
       {/* Notifications Toggle */}
@@ -345,9 +345,9 @@ export default function NotificationScreen() {
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>🧘‍♂️ Reminder Schedule</Text>
         <Text style={styles.infoText}>
-          If you haven't meditated, we'll remind you at your evening time, 10 PM, and 11 PM.
-          Logging a session stops the remaining reminders. Tap Start now to begin a 10-minute
-          meditation.
+          One teaching arrives at a random time between noon and 6 PM. If you haven't meditated,
+          we'll also remind you at your evening time, 10 PM, and 11 PM. Logging a session stops
+          the remaining practice reminders.
         </Text>
       </View>
       </ScrollView>
