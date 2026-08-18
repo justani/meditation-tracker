@@ -114,6 +114,11 @@ export default function ProgressScreen() {
   const getSessionsForDate = (date) => {
     return sessions.filter(session => session.date === date && session.completed);
   };
+
+  const getSessionForDateAndPeriod = (date, period) => (
+    getSessionsForDate(date).find(session => session.type === period)
+    || getSessionsForDate(date).find(session => getSessionPeriod(session) === period)
+  );
   
   const handleDayPress = async (dayData) => {
     if (!dayData.isCurrentMonth) return;
@@ -123,11 +128,10 @@ export default function ProgressScreen() {
     
     if (isFutureDate) return;
     
-    const daySessions = getSessionsForDate(dateString);
-    const hasSession = daySessions.some(s => s.type === activeTab);
+    const matchingSession = getSessionForDateAndPeriod(dateString, activeTab);
     
-    if (hasSession) {
-      await removeSessionComplete(dateString, activeTab);
+    if (matchingSession) {
+      await removeSessionComplete(dateString, matchingSession.type, matchingSession.id);
     } else {
       // Show duration picker for new sessions
       const sessionData = { date: dateString, type: activeTab };
@@ -171,8 +175,9 @@ export default function ProgressScreen() {
   };
   
   const renderCalendarDay = (dayData) => {
-    const daySession = getSessionsForDate(dayData.date);
-    const hasCurrentSession = daySession.some(s => s.type === activeTab);
+    const hasCurrentSession = Boolean(
+      getSessionForDateAndPeriod(dayData.date, activeTab)
+    );
     const isFutureDate = new Date(dayData.date) > new Date(today);
     const isInactive = !dayData.isCurrentMonth || isFutureDate;
     
