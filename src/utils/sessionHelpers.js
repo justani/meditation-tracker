@@ -23,11 +23,21 @@ export const getSessionPeriod = (session) => {
     : SESSION_TYPES.EVENING;
 };
 
-export const formatMeditationTime = (totalMinutes) => {
+export const formatMeditationTime = (totalMinutes, language = 'english') => {
   const roundedMinutes = Math.round(totalMinutes);
-  if (roundedMinutes < 60) return `${roundedMinutes} min`;
+  if (language !== 'hindi') {
+    if (roundedMinutes < 60) return `${roundedMinutes} min`;
+
+    const hours = Math.floor(roundedMinutes / 60);
+    const minutes = roundedMinutes % 60;
+    return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+  }
+
+  if (roundedMinutes < 60) return `${roundedMinutes} मिनट`;
 
   const hours = Math.floor(roundedMinutes / 60);
   const minutes = roundedMinutes % 60;
-  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+  return minutes
+    ? `${hours} घंटे ${minutes} मिनट`
+    : `${hours} घंटे`;
 };

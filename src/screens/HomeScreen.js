@@ -10,6 +10,7 @@ import { getDailyQuote } from '../utils/notificationMessages';
 import { formatMeditationTime, getSessionPeriod } from '../utils/sessionHelpers';
 import { clearAllData } from '../utils/storage';
 import { COLORS } from '../theme/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function HomeScreen() {
   const {
@@ -22,10 +23,11 @@ export default function HomeScreen() {
     loadAppData,
   } = useMeditation();
   const { showModal } = useModal();
+  const { language, locale, t } = useTranslation();
   const [pendingSessionData, setPendingSessionData] = useState(null);
   
   const today = getTodayDate();
-  const todayFormatted = formatDateDisplay(today);
+  const todayFormatted = formatDateDisplay(today, locale);
   const dailyQuote = getDailyQuote(settings.language);
 
   const todaySessions = sessions.filter(
@@ -46,14 +48,14 @@ export default function HomeScreen() {
     .reduce((sum, session) => sum + (session.duration || 0), 0);
   const hasMeditatedToday = todaySessions.length > 0;
   const streakMessage = userProgress.currentStreak === 0
-    ? 'Begin a new streak today'
+    ? t('Begin a new streak today')
     : hasMeditatedToday
-      ? 'Your streak is safe for today'
-      : 'Meditate today to keep it going';
+      ? t('Your streak is safe for today')
+      : t('Meditate today to keep it going');
   const todaySummary = hasMeditatedToday
-    ? `${formatMeditationTime(todayMinutes)} · ${todaySessions.length} ${todaySessions.length === 1 ? 'session' : 'sessions'}`
-    : 'No meditation recorded yet';
-  const periodSummary = `Morning ${morningSession ? 'completed' : 'available'} · Evening ${eveningSession ? 'completed' : 'available'}`;
+    ? `${formatMeditationTime(todayMinutes, language)} · ${todaySessions.length} ${t(todaySessions.length === 1 ? 'session' : 'sessions')}`
+    : t('No meditation recorded yet');
+  const periodSummary = `${t('Morning')} ${morningSession ? t('completed') : t('available')} · ${t('Evening')} ${eveningSession ? t('completed') : t('available')}`;
   const isFirstTimeUser = settings.isFirstTimeUser;
   
   const handleSessionToggle = async (type) => {
@@ -102,7 +104,7 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primaryInk} />
-          <Text style={styles.loadingText}>Loading your meditation data...</Text>
+          <Text style={styles.loadingText}>{t('Loading your meditation data...')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -124,7 +126,7 @@ export default function HomeScreen() {
 
         {/* Streak Counter */}
         <View style={styles.streakContainer}>
-          <Text style={styles.streakLabel}>Current Streak</Text>
+          <Text style={styles.streakLabel}>{t('Current Streak')}</Text>
           <Text
             style={styles.streakNumber}
             numberOfLines={1}
@@ -133,7 +135,7 @@ export default function HomeScreen() {
           >
             {userProgress.currentStreak}
           </Text>
-          <Text style={styles.streakDays}>days</Text>
+          <Text style={styles.streakDays}>{t('days')}</Text>
           <Text style={styles.streakMessage}>{streakMessage}</Text>
         </View>
 
@@ -156,14 +158,14 @@ export default function HomeScreen() {
         {isFirstTimeUser && (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsText}>
-              💡 Press and hold each circle to mark your meditation complete
+              {t('💡 Press and hold each circle to mark your meditation complete')}
             </Text>
           </View>
         )}
 
         {/* Today's Practice */}
         <View style={styles.todayPracticeContainer}>
-          <Text style={styles.sectionTitle}>Today's Practice</Text>
+          <Text style={styles.sectionTitle}>{t("Today's Practice")}</Text>
           <Text style={styles.todaySummary}>{todaySummary}</Text>
           <Text style={styles.periodSummary}>{periodSummary}</Text>
         </View>
@@ -171,20 +173,20 @@ export default function HomeScreen() {
         {/* Temporary reset button for testing - remove in production */}
         {__DEV__ && (
           <TouchableOpacity style={styles.resetButton} onPress={handleResetData}>
-            <Text style={styles.resetButtonText}>Reset Data (Testing)</Text>
+            <Text style={styles.resetButtonText}>{t('Reset Data (Testing)')}</Text>
           </TouchableOpacity>
         )}
 
         {/* Lifetime Progress */}
-        <Text style={styles.sectionTitle}>Your Journey</Text>
+        <Text style={styles.sectionTitle}>{t('Your Journey')}</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userProgress.totalSessions}</Text>
-            <Text style={styles.statLabel}>Sessions</Text>
+            <Text style={styles.statLabel}>{t('Sessions')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{userProgress.longestStreak}</Text>
-            <Text style={styles.statLabel}>Best Streak</Text>
+            <Text style={styles.statLabel}>{t('Best Streak')}</Text>
           </View>
           <View style={styles.statItem}>
             <Text
@@ -193,9 +195,9 @@ export default function HomeScreen() {
               adjustsFontSizeToFit
               minimumFontScale={0.75}
             >
-              {formatMeditationTime(lifetimeMinutes)}
+              {formatMeditationTime(lifetimeMinutes, language)}
             </Text>
-            <Text style={styles.statLabel}>Total Time</Text>
+            <Text style={styles.statLabel}>{t('Total Time')}</Text>
           </View>
         </View>
       </ScrollView>

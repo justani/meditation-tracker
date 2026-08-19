@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 const MergePreviewModal = ({ 
   visible, 
@@ -18,6 +19,7 @@ const MergePreviewModal = ({
   onCancel, 
   loading 
 }) => {
+  const { language, locale, t } = useTranslation();
   if (!preview) {
     return null;
   }
@@ -26,17 +28,42 @@ const MergePreviewModal = ({
                     preview.sessions.conflictsResolved > 0 || 
                     preview.settings.changed;
 
+  const getSummary = () => {
+    if (language !== 'hindi') return preview.summary;
+
+    const parts = [];
+    if (preview.sessions.newSessions > 0) {
+      parts.push(t('{{count}} new sessions will be added', {
+        count: preview.sessions.newSessions,
+      }));
+    }
+    if (preview.sessions.conflictsResolved > 0) {
+      parts.push(t('{{count}} conflicts will be resolved', {
+        count: preview.sessions.conflictsResolved,
+      }));
+    }
+    if (preview.settings.changed) {
+      parts.push(t('{{count}} settings will be updated', {
+        count: preview.settings.changes.length,
+      }));
+    }
+
+    return parts.length
+      ? parts.join(', ')
+      : t('No changes needed - your data is already up to date');
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = now - date;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays === 0) return t('Today');
+    if (diffDays === 1) return t('Yesterday');
+    if (diffDays < 7) return t('{{days}} days ago', { days: diffDays });
     
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
       year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
@@ -55,7 +82,7 @@ const MergePreviewModal = ({
           <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
             <Ionicons name="close" size={24} color={COLORS.textMuted} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Merge Preview</Text>
+          <Text style={styles.headerTitle}>{t('Merge Preview')}</Text>
           <View style={styles.headerSpacer} />
         </View>
 
@@ -64,14 +91,14 @@ const MergePreviewModal = ({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="cloud-download" size={20} color={COLORS.primaryInk} />
-              <Text style={styles.sectionTitle}>Backup Information</Text>
+              <Text style={styles.sectionTitle}>{t('Backup Information')}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Created:</Text>
+              <Text style={styles.infoLabel}>{t('Created:')}</Text>
               <Text style={styles.infoValue}>{formatDate(preview.backupDate)}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Version:</Text>
+              <Text style={styles.infoLabel}>{t('Version:')}</Text>
               <Text style={styles.infoValue}>{preview.backupVersion}</Text>
             </View>
           </View>
@@ -80,47 +107,53 @@ const MergePreviewModal = ({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="analytics" size={20} color={COLORS.primaryInk} />
-              <Text style={styles.sectionTitle}>Merge Summary</Text>
+              <Text style={styles.sectionTitle}>{t('Merge Summary')}</Text>
             </View>
-            <Text style={styles.summaryText}>{preview.summary}</Text>
+            <Text style={styles.summaryText}>{getSummary()}</Text>
           </View>
 
           {/* Session Changes */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="calendar" size={20} color={COLORS.primaryInk} />
-              <Text style={styles.sectionTitle}>Sessions</Text>
+              <Text style={styles.sectionTitle}>{t('Sessions')}</Text>
             </View>
             
             <View style={styles.statGrid}>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{preview.sessions.newSessions}</Text>
-                <Text style={styles.statLabel}>New Sessions</Text>
+                <Text style={styles.statLabel}>{t('New Sessions')}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{preview.sessions.conflictsResolved}</Text>
-                <Text style={styles.statLabel}>Conflicts Resolved</Text>
+                <Text style={styles.statLabel}>{t('Conflicts Resolved')}</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{preview.sessions.totalAfterMerge}</Text>
-                <Text style={styles.statLabel}>Total After Merge</Text>
+                <Text style={styles.statLabel}>{t('Total After Merge')}</Text>
               </View>
             </View>
 
             {preview.sessions.conflicts && preview.sessions.conflicts.length > 0 && (
               <View style={styles.conflictSection}>
-                <Text style={styles.conflictHeader}>Conflict Resolution Details:</Text>
+                <Text style={styles.conflictHeader}>{t('Conflict Resolution Details:')}</Text>
                 {preview.sessions.conflicts.slice(0, 3).map((conflict, index) => (
                   <View key={index} style={styles.conflictItem}>
                     <Text style={styles.conflictDate}>
-                      {new Date(conflict.date).toLocaleDateString()} - {conflict.type}
+                      {new Date(conflict.date).toLocaleDateString(locale)} - {t(
+                        conflict.type === 'morning'
+                          ? 'Morning'
+                          : conflict.type === 'evening'
+                            ? 'Evening'
+                            : 'Timer'
+                      )}
                     </Text>
-                    <Text style={styles.conflictReason}>{conflict.reason}</Text>
+                    <Text style={styles.conflictReason}>{t(conflict.reason)}</Text>
                   </View>
                 ))}
                 {preview.sessions.conflicts.length > 3 && (
                   <Text style={styles.moreConflicts}>
-                    +{preview.sessions.conflicts.length - 3} more conflicts...
+                    {t('+{{count}} more conflicts...', { count: preview.sessions.conflicts.length - 3 })}
                   </Text>
                 )}
               </View>
@@ -132,14 +165,14 @@ const MergePreviewModal = ({
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="settings" size={20} color={COLORS.primaryInk} />
-                <Text style={styles.sectionTitle}>Settings</Text>
+                <Text style={styles.sectionTitle}>{t('Settings')}</Text>
               </View>
               
               {preview.settings.changes.map((change, index) => (
                 <View key={index} style={styles.settingChange}>
                   <Text style={styles.settingKey}>{change.key}</Text>
-                  <Text style={styles.settingAction}>{change.action}: {JSON.stringify(change.value)}</Text>
-                  <Text style={styles.settingReason}>{change.reason}</Text>
+                  <Text style={styles.settingAction}>{t(change.action)}: {JSON.stringify(change.value)}</Text>
+                  <Text style={styles.settingReason}>{t(change.reason)}</Text>
                 </View>
               ))}
             </View>
@@ -148,9 +181,9 @@ const MergePreviewModal = ({
           {!hasChanges && (
             <View style={styles.noChangesSection}>
               <Ionicons name="checkmark-circle" size={48} color={COLORS.success} />
-              <Text style={styles.noChangesTitle}>No Changes Needed</Text>
+              <Text style={styles.noChangesTitle}>{t('No Changes Needed')}</Text>
               <Text style={styles.noChangesText}>
-                Your local data is already up to date with this backup.
+                {t('Your local data is already up to date with this backup.')}
               </Text>
             </View>
           )}
@@ -163,7 +196,7 @@ const MergePreviewModal = ({
             onPress={onCancel}
             disabled={loading}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>{t('Cancel')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -173,7 +206,7 @@ const MergePreviewModal = ({
           >
             <Ionicons name="checkmark" size={20} color={COLORS.onPrimary} />
             <Text style={styles.confirmButtonText}>
-              {hasChanges ? 'Merge Data' : 'Already Up to Date'}
+              {t(hasChanges ? 'Merge Data' : 'Already Up to Date')}
             </Text>
           </TouchableOpacity>
         </View>

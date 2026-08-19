@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import MeditationTimerModule from '../../modules/meditation-timer/src/MeditationTimerModule';
+import { translate } from '../i18n';
 
 export const TIMER_DURATIONS = [10, 20, 30, 40, 50, 60];
 export const TIMER_CHANNEL_ID = 'meditation-timer-alarm-v3';
@@ -120,16 +121,18 @@ export const cancelTimerNotifications = async () => {
   );
 };
 
-const scheduleTimerNotification = async ({ timerId, date, checkpointNumber }) => {
+const scheduleTimerNotification = async ({ timerId, date, checkpointNumber, language }) => {
   const isCompletion = checkpointNumber === 0;
 
   await Notifications.scheduleNotificationAsync({
     identifier: createTimerNotificationId(timerId, checkpointNumber),
     content: {
-      title: isCompletion ? 'Meditation complete' : 'Five-minute checkpoint',
+      title: translate(language, isCompletion ? 'Meditation complete' : 'Five-minute checkpoint'),
       body: isCompletion
-        ? 'Continue if you feel settled. Another chime will sound in five minutes.'
-        : `${checkpointNumber * CHECKPOINT_INTERVAL_MINUTES} extra minutes completed.`,
+        ? translate(language, 'Continue if you feel settled. Another chime will sound in five minutes.')
+        : translate(language, '{{minutes}} extra minutes completed.', {
+          minutes: checkpointNumber * CHECKPOINT_INTERVAL_MINUTES,
+        }),
       sound: CHIME_SOUND,
       data: {
         kind: 'meditation-timer',
@@ -145,7 +148,7 @@ const scheduleTimerNotification = async ({ timerId, date, checkpointNumber }) =>
   });
 };
 
-export const startMeditationTimer = async (durationMinutes) => {
+export const startMeditationTimer = async (durationMinutes, language = 'english') => {
   if (!TIMER_DURATIONS.includes(durationMinutes)) {
     throw new Error('Choose a supported meditation duration.');
   }
@@ -174,6 +177,7 @@ export const startMeditationTimer = async (durationMinutes) => {
         timerId,
         date: new Date(endsAt),
         checkpointNumber: 0,
+        language,
       });
 
       for (let checkpointNumber = 1; checkpointNumber <= CHECKPOINT_COUNT; checkpointNumber++) {
@@ -183,6 +187,7 @@ export const startMeditationTimer = async (durationMinutes) => {
             endsAt + checkpointNumber * CHECKPOINT_INTERVAL_MINUTES * 60 * 1000
           ),
           checkpointNumber,
+          language,
         });
       }
     }
@@ -203,7 +208,7 @@ export const startMeditationTimer = async (durationMinutes) => {
   }
 };
 
-export const testTimerChime = async () => {
+export const testTimerChime = async (language = 'english') => {
   const hasPermission = await configureTimerNotifications();
   if (!hasPermission) {
     const permissionError = new Error('Timer sound permission is required.');
@@ -221,8 +226,8 @@ export const testTimerChime = async () => {
   await Notifications.scheduleNotificationAsync({
     identifier: `${TIMER_NOTIFICATION_PREFIX}test-${Date.now()}`,
     content: {
-      title: 'Meditation chime test',
-      body: 'This is the sound you will hear when your timer completes.',
+      title: translate(language, 'Meditation chime test'),
+      body: translate(language, 'This is the sound you will hear when your timer completes.'),
       sound: CHIME_SOUND,
       data: { kind: 'meditation-timer' },
     },

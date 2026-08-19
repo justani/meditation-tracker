@@ -17,11 +17,13 @@ import { useMeditation } from '../context/MeditationContext';
 import { BackupService } from '../services/backupService';
 import MergePreviewModal from '../components/MergePreviewModal';
 import { COLORS } from '../theme/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 const PRIVACY_POLICY_URL = 'https://justani.github.io/meditation-tracker/privacy-policy/';
 
 const BackupScreen = () => {
-  const { loadAppData } = useMeditation();
+  const { loadAppData, settings, updateSettings } = useMeditation();
+  const { locale, t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [backups, setBackups] = useState([]);
@@ -80,12 +82,12 @@ const BackupScreen = () => {
       if (result.success) {
         setBackups(result.files);
       } else if (showError) {
-        Alert.alert('Error', 'Failed to load backups: ' + result.error);
+        Alert.alert(t('Error'), t('Failed to load backups'));
       }
     } catch (error) {
       console.error('Error loading backups:', error);
       if (showError) {
-        Alert.alert('Error', 'Failed to load backups');
+        Alert.alert(t('Error'), t('Failed to load backups'));
       }
     }
   };
@@ -102,19 +104,19 @@ const BackupScreen = () => {
         }
         await loadBackups();
         if (backupResult.success) {
-          Alert.alert('Success', 'Connected to Google Drive and created your first backup.');
+          Alert.alert(t('Success'), t('Connected to Google Drive and created your first backup.'));
         } else {
           Alert.alert(
-            'Connected to Google Drive',
-            'The first backup could not be created. The app will try again next time it opens.'
+            t('Connected to Google Drive'),
+            t('The first backup could not be created. The app will try again next time it opens.')
           );
         }
       } else {
-        Alert.alert('Error', 'Failed to connect to Google Drive: ' + result.error);
+        Alert.alert(t('Error'), t('Failed to connect to Google Drive'));
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      Alert.alert('Error', 'Failed to connect to Google Drive');
+      Alert.alert(t('Error'), t('Failed to connect to Google Drive'));
     } finally {
       setOperationInProgress(false);
     }
@@ -122,12 +124,12 @@ const BackupScreen = () => {
 
   const handleSignOut = async () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out of Google Drive?',
+      t('Sign Out'),
+      t('Are you sure you want to sign out of Google Drive?'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('Sign Out'),
           style: 'destructive',
           onPress: async () => {
             setOperationInProgress(true);
@@ -136,13 +138,13 @@ const BackupScreen = () => {
               if (result.success) {
                 setIsAuthenticated(false);
                 setBackups([]);
-                Alert.alert('Success', 'Signed out successfully');
+                Alert.alert(t('Success'), t('Signed out successfully'));
               } else {
-                Alert.alert('Error', 'Failed to sign out: ' + result.error);
+                Alert.alert(t('Error'), t('Failed to sign out'));
               }
             } catch (error) {
               console.error('Error signing out:', error);
-              Alert.alert('Error', 'Failed to sign out');
+              Alert.alert(t('Error'), t('Failed to sign out'));
             } finally {
               setOperationInProgress(false);
             }
@@ -158,16 +160,16 @@ const BackupScreen = () => {
       const result = await BackupService.uploadBackup();
       if (result.success) {
         if (result.skipped) {
-          Alert.alert('Up to Date', 'Your meditation data has not changed since the last backup.');
+          Alert.alert(t('Up to Date'), t('Your meditation data has not changed since the last backup.'));
         } else {
-          Alert.alert('Success', `Backup created successfully: ${result.fileName}`);
+          Alert.alert(t('Success'), t('Backup created successfully: {{fileName}}', { fileName: result.fileName }));
         }
       } else {
-        Alert.alert('Error', 'Failed to create backup: ' + result.error);
+        Alert.alert(t('Error'), t('Failed to create backup'));
       }
     } catch (error) {
       console.error('Error creating backup:', error);
-      Alert.alert('Error', 'Failed to create backup');
+      Alert.alert(t('Error'), t('Failed to create backup'));
     } finally {
       setOperationInProgress(false);
     }
@@ -183,11 +185,11 @@ const BackupScreen = () => {
         setMergePreview(result.preview);
         setShowPreviewModal(true);
       } else {
-        Alert.alert('Error', 'Failed to load backup preview: ' + result.error);
+        Alert.alert(t('Error'), t('Failed to load backup preview'));
       }
     } catch (error) {
       console.error('Error loading preview:', error);
-      Alert.alert('Error', 'Failed to load backup preview');
+      Alert.alert(t('Error'), t('Failed to load backup preview'));
     } finally {
       setOperationInProgress(false);
     }
@@ -206,22 +208,22 @@ const BackupScreen = () => {
         
         // Show success with summary
         const summary = result.summary;
-        let message = 'Backup merged successfully!';
+        let message = t('Backup merged successfully!');
         if (summary.newSessions > 0 || summary.conflictsResolved > 0) {
-          message += `\n\n• ${summary.newSessions} new sessions added`;
+          message += `\n\n• ${t('{{count}} new sessions added', { count: summary.newSessions })}`;
           if (summary.conflictsResolved > 0) {
-            message += `\n• ${summary.conflictsResolved} conflicts resolved`;
+            message += `\n• ${t('{{count}} conflicts resolved', { count: summary.conflictsResolved })}`;
           }
         }
         
-        Alert.alert('Success', message);
+        Alert.alert(t('Success'), message);
         await loadBackups(); // Refresh backup list
       } else {
-        Alert.alert('Error', 'Failed to merge backup: ' + result.error);
+        Alert.alert(t('Error'), t('Failed to merge backup'));
       }
     } catch (error) {
       console.error('Error merging backup:', error);
-      Alert.alert('Error', 'Failed to merge backup');
+      Alert.alert(t('Error'), t('Failed to merge backup'));
     } finally {
       setOperationInProgress(false);
       setSelectedBackupId(null);
@@ -237,12 +239,12 @@ const BackupScreen = () => {
 
   const handleDeleteBackup = async (backup) => {
     Alert.alert(
-      'Delete Backup',
-      `Delete backup from ${formatDate(backup.createdTime)}?`,
+      t('Delete Backup'),
+      t('Delete backup from {{date}}?', { date: formatDate(backup.createdTime) }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('Delete'),
           style: 'destructive',
           onPress: async () => {
             setOperationInProgress(true);
@@ -250,13 +252,13 @@ const BackupScreen = () => {
               const result = await BackupService.deleteBackup(backup.id);
               if (result.success) {
                 await loadBackups();
-                Alert.alert('Success', 'Backup deleted successfully');
+                Alert.alert(t('Success'), t('Backup deleted successfully'));
               } else {
-                Alert.alert('Error', 'Failed to delete backup: ' + result.error);
+                Alert.alert(t('Error'), t('Failed to delete backup'));
               }
             } catch (error) {
               console.error('Error deleting backup:', error);
-              Alert.alert('Error', 'Failed to delete backup');
+              Alert.alert(t('Error'), t('Failed to delete backup'));
             } finally {
               setOperationInProgress(false);
             }
@@ -273,7 +275,7 @@ const BackupScreen = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -283,7 +285,7 @@ const BackupScreen = () => {
   };
 
   const formatFileSize = (bytes) => {
-    if (!bytes) return 'Unknown size';
+    if (!bytes) return t('Unknown size');
     const kb = bytes / 1024;
     if (kb < 1024) return `${kb.toFixed(1)} KB`;
     return `${(kb / 1024).toFixed(1)} MB`;
@@ -294,7 +296,7 @@ const BackupScreen = () => {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primaryInk} />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('Loading...')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -308,10 +310,41 @@ const BackupScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        <Text style={styles.screenTitle}>{t('Settings')}</Text>
+
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Google Drive Backup</Text>
+          <Text style={styles.sectionTitle}>{t('App Language')}</Text>
           <Text style={styles.sectionDescription}>
-            Securely backup your meditation data to your private Google Drive folder.
+            {t('Choose the language used throughout the app')}
+          </Text>
+          <View style={styles.languageOptions}>
+            {[
+              { value: 'english', label: 'English' },
+              { value: 'hindi', label: 'हिन्दी' },
+            ].map(({ value, label }) => {
+              const selected = settings.language === value;
+              return (
+                <TouchableOpacity
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  key={value}
+                  onPress={() => updateSettings({ language: value })}
+                  style={[styles.languageOption, selected && styles.selectedLanguageOption]}
+                >
+                  <Text style={[styles.languageOptionText, selected && styles.selectedLanguageOptionText]}>
+                    {label}
+                  </Text>
+                  {selected && <Ionicons name="checkmark-circle" size={20} color={COLORS.onPrimary} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('Google Drive Backup')}</Text>
+          <Text style={styles.sectionDescription}>
+            {t('Securely backup your meditation data to your private Google Drive folder.')}
           </Text>
 
           {!isAuthenticated ? (
@@ -321,7 +354,7 @@ const BackupScreen = () => {
               disabled={operationInProgress}
             >
               <Ionicons name="logo-google" size={20} color={COLORS.onPrimary} />
-              <Text style={styles.buttonText}>Connect to Google Drive</Text>
+              <Text style={styles.buttonText}>{t('Connect to Google Drive')}</Text>
               {operationInProgress && (
                 <ActivityIndicator size="small" color={COLORS.onPrimary} style={styles.buttonLoader} />
               )}
@@ -331,11 +364,11 @@ const BackupScreen = () => {
               <View style={styles.statusContainer}>
                 <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
                 <View style={styles.statusTextContainer}>
-                  <Text style={styles.statusText}>Connected to Google Drive</Text>
+                  <Text style={styles.statusText}>{t('Connected to Google Drive')}</Text>
                   <Text style={styles.lastBackupText}>
                     {lastBackupAt
-                      ? `Last backed up ${formatDate(lastBackupAt)}`
-                      : 'No successful backups yet'}
+                      ? t('Last backed up {{date}}', { date: formatDate(lastBackupAt) })
+                      : t('No successful backups yet')}
                   </Text>
                 </View>
               </View>
@@ -347,7 +380,7 @@ const BackupScreen = () => {
                   disabled={operationInProgress}
                 >
                   <Ionicons name="cloud-upload" size={18} color={COLORS.onPrimary} />
-                  <Text style={styles.actionButtonText}>Create Backup</Text>
+                  <Text style={styles.actionButtonText}>{t('Create Backup')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -356,7 +389,7 @@ const BackupScreen = () => {
                   disabled={operationInProgress}
                 >
                   <Ionicons name="log-out" size={18} color={COLORS.textMuted} />
-                  <Text style={styles.secondaryButtonText}>Sign Out</Text>
+                  <Text style={styles.secondaryButtonText}>{t('Sign Out')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -365,12 +398,12 @@ const BackupScreen = () => {
 
         {isAuthenticated && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Backups</Text>
+            <Text style={styles.sectionTitle}>{t('Your Backups')}</Text>
             {backups.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="cloud-outline" size={48} color={COLORS.disabled} />
-                <Text style={styles.emptyStateText}>No backups found</Text>
-                <Text style={styles.emptyStateSubtext}>Create your first backup above</Text>
+                <Text style={styles.emptyStateText}>{t('No backups found')}</Text>
+                <Text style={styles.emptyStateSubtext}>{t('Create your first backup above')}</Text>
               </View>
             ) : (
               backups.map((backup) => (
@@ -402,29 +435,29 @@ const BackupScreen = () => {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About Backups</Text>
+          <Text style={styles.sectionTitle}>{t('About Backups')}</Text>
           <View style={styles.infoList}>
             <View style={styles.infoItem}>
               <Ionicons name="shield-checkmark" size={16} color={COLORS.success} />
-              <Text style={styles.infoText}>Your data is stored privately in your Google Drive</Text>
+              <Text style={styles.infoText}>{t('Your data is stored privately in your Google Drive')}</Text>
             </View>
             <View style={styles.infoItem}>
               <Ionicons name="time" size={16} color={COLORS.success} />
-              <Text style={styles.infoText}>Backups include all your meditation sessions and progress</Text>
+              <Text style={styles.infoText}>{t('Backups include all your meditation sessions and progress')}</Text>
             </View>
             <View style={styles.infoItem}>
               <Ionicons name="sync" size={16} color={COLORS.success} />
-              <Text style={styles.infoText}>Restore your data on any device by signing in</Text>
+              <Text style={styles.infoText}>{t('Restore your data on any device by signing in')}</Text>
             </View>
             <View style={styles.infoItem}>
               <Ionicons name="refresh" size={16} color={COLORS.success} />
               <Text style={styles.infoText}>
-                Changed data is backed up automatically every 2 days when you open the app
+                {t('Changed data is backed up automatically every 2 days when you open the app')}
               </Text>
             </View>
             <View style={styles.infoItem}>
               <Ionicons name="albums" size={16} color={COLORS.success} />
-              <Text style={styles.infoText}>Your latest 20 backups are kept</Text>
+              <Text style={styles.infoText}>{t('Your latest 20 backups are kept')}</Text>
             </View>
             <TouchableOpacity
               style={styles.infoItem}
@@ -432,7 +465,7 @@ const BackupScreen = () => {
               onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
             >
               <Ionicons name="document-text" size={16} color={COLORS.primaryInk} />
-              <Text style={styles.privacyPolicyLink}>Read our Privacy Policy</Text>
+              <Text style={styles.privacyPolicyLink}>{t('Read our Privacy Policy')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -442,7 +475,7 @@ const BackupScreen = () => {
         <View style={styles.overlay}>
           <View style={styles.overlayContent}>
             <ActivityIndicator size="large" color={COLORS.primaryInk} />
-            <Text style={styles.overlayText}>Processing...</Text>
+            <Text style={styles.overlayText}>{t('Processing...')}</Text>
           </View>
         </View>
       )}
@@ -465,6 +498,14 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  screenTitle: {
+    color: COLORS.primaryInk,
+    fontSize: 28,
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -498,6 +539,34 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     marginBottom: 16,
     lineHeight: 20,
+  },
+  languageOptions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  languageOption: {
+    flex: 1,
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: COLORS.borderStrong,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceMuted,
+  },
+  selectedLanguageOption: {
+    backgroundColor: COLORS.primaryActive,
+    borderColor: COLORS.primaryActive,
+  },
+  languageOptionText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  selectedLanguageOptionText: {
+    color: COLORS.onPrimary,
   },
   primaryButton: {
     backgroundColor: COLORS.primaryActive,

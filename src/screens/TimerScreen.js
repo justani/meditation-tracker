@@ -24,6 +24,7 @@ import {
   testTimerChime,
   TIMER_DURATIONS,
 } from '../services/meditationTimerService';
+import { useTranslation } from '../hooks/useTranslation';
 
 const ANDROID_EXACT_ALARM_SETTINGS = 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM';
 const ANDROID_PACKAGE = 'com.vipassana.meditationtracker';
@@ -40,7 +41,7 @@ const formatTime = (milliseconds) => {
     : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
 
-const formatAccessibilityTime = (milliseconds, isOvertime) => {
+const formatAccessibilityTime = (milliseconds, isOvertime, t) => {
   const absoluteSeconds = milliseconds > 0
     ? Math.ceil(milliseconds / 1000)
     : Math.floor(Math.abs(milliseconds) / 1000);
@@ -48,15 +49,16 @@ const formatAccessibilityTime = (milliseconds, isOvertime) => {
   const minutes = Math.floor((absoluteSeconds % 3600) / 60);
   const seconds = absoluteSeconds % 60;
   const parts = [];
-  if (hours) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
-  if (minutes) parts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
-  if (!hours && seconds) parts.push(`${seconds} ${seconds === 1 ? 'second' : 'seconds'}`);
-  if (!parts.length) parts.push('0 seconds');
-  return `${parts.join(' ')} ${isOvertime ? 'overtime' : 'remaining'}`;
+  if (hours) parts.push(`${hours} ${t(hours === 1 ? 'hour' : 'hours')}`);
+  if (minutes) parts.push(`${minutes} ${t(minutes === 1 ? 'minute' : 'minutes')}`);
+  if (!hours && seconds) parts.push(`${seconds} ${t(seconds === 1 ? 'second' : 'seconds')}`);
+  if (!parts.length) parts.push(`0 ${t('seconds')}`);
+  return `${parts.join(' ')} ${t(isOvertime ? 'overtime' : 'remaining')}`;
 };
 
 export default function TimerScreen({ route }) {
   const { recordTimerSession } = useMeditation();
+  const { language, t } = useTranslation();
   const [selectedDuration, setSelectedDuration] = useState(20);
   const [activeTimer, setActiveTimer] = useState(null);
   const [now, setNow] = useState(Date.now());
@@ -120,7 +122,7 @@ export default function TimerScreen({ route }) {
     setIsStarting(true);
 
     try {
-      const timer = await startMeditationTimer(durationToStart);
+      const timer = await startMeditationTimer(durationToStart, language);
       setActiveTimer(timer);
       setAlarmAccessAvailable(true);
       setNow(Date.now());
@@ -131,18 +133,18 @@ export default function TimerScreen({ route }) {
         || error.code === 'ERR_EXACT_ALARM_PERMISSION';
       Alert.alert(
         permissionDenied
-          ? 'Allow notifications'
+          ? t('Allow notifications')
           : exactAlarmDenied
-            ? 'Allow alarms & reminders'
-            : 'Timer could not start',
+            ? t('Allow alarms & reminders')
+            : t('Timer could not start'),
         permissionDenied
-          ? 'Timer chimes need notification permission. Enable notifications in Android settings and try again.'
+          ? t('Timer chimes need notification permission. Enable notifications in Android settings and try again.')
           : exactAlarmDenied
-            ? 'Android needs this access to wake the app and play the chime at the exact time.'
-            : 'The timer could not be scheduled. Please try again.',
+            ? t('Android needs this access to wake the app and play the chime at the exact time.')
+            : t('The timer could not be scheduled. Please try again.'),
         [
-          { text: 'Not now', style: 'cancel' },
-          { text: 'Open settings', onPress: openAlarmSettings },
+          { text: t('Not now'), style: 'cancel' },
+          { text: t('Open settings'), onPress: openAlarmSettings },
         ]
       );
     } finally {
@@ -177,15 +179,15 @@ export default function TimerScreen({ route }) {
     setIsTestingChime(true);
 
     try {
-      await testTimerChime();
-      Alert.alert('Chime scheduled', 'You should hear the five-second chime in two seconds.');
+      await testTimerChime(language);
+      Alert.alert(t('Chime scheduled'), t('You should hear the five-second chime in two seconds.'));
     } catch (error) {
       Alert.alert(
-        'Could not test chime',
-        'Allow Alarms & reminders and keep alarm volume audible, then try again.',
+        t('Could not test chime'),
+        t('Allow Alarms & reminders and keep alarm volume audible, then try again.'),
         [
-          { text: 'Not now', style: 'cancel' },
-          { text: 'Open settings', onPress: openAlarmSettings },
+          { text: t('Not now'), style: 'cancel' },
+          { text: t('Open settings'), onPress: openAlarmSettings },
         ]
       );
     } finally {
@@ -205,14 +207,14 @@ export default function TimerScreen({ route }) {
     const isStale = Date.now() > latestRecordedAt;
 
     Alert.alert(
-      'Finish meditation?',
+      t('Finish meditation?'),
       isStale
-        ? `The checkpoint window ended earlier, so this will save at most ${elapsedMinutes} minutes rather than counting unattended time.`
-        : `You meditated for about ${elapsedMinutes} minutes. Future checkpoint chimes will be cancelled.`,
+        ? t('The checkpoint window ended earlier, so this will save at most {{minutes}} minutes rather than counting unattended time.', { minutes: elapsedMinutes })
+        : t('You meditated for about {{minutes}} minutes. Future checkpoint chimes will be cancelled.', { minutes: elapsedMinutes }),
       [
-        { text: 'Keep meditating', style: 'cancel' },
+        { text: t('Keep meditating'), style: 'cancel' },
         {
-          text: 'Finish',
+          text: t('Finish'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -232,15 +234,15 @@ export default function TimerScreen({ route }) {
               });
               if (!saved) {
                 Alert.alert(
-                  'Could not save meditation',
-                  'Your timer is still active. Please try finishing again.'
+                  t('Could not save meditation'),
+                  t('Your timer is still active. Please try finishing again.')
                 );
                 return;
               }
               await finishMeditationTimer();
               setActiveTimer(null);
             } catch (error) {
-              Alert.alert('Could not finish timer', 'Please try again.');
+              Alert.alert(t('Could not finish timer'), t('Please try again.'));
             }
           },
         },
@@ -260,10 +262,10 @@ export default function TimerScreen({ route }) {
         {activeTimer ? (
           <View style={styles.activeTimerCard}>
             <Text style={styles.timerEyebrow}>
-              {isOvertime ? 'CONTINUING IN SILENCE' : 'MEDITATION IN PROGRESS'}
+              {t(isOvertime ? 'CONTINUING IN SILENCE' : 'MEDITATION IN PROGRESS')}
             </Text>
             <Text
-              accessibilityLabel={formatAccessibilityTime(remainingMilliseconds, isOvertime)}
+              accessibilityLabel={formatAccessibilityTime(remainingMilliseconds, isOvertime, t)}
               adjustsFontSizeToFit
               minimumFontScale={0.5}
               numberOfLines={1}
@@ -274,19 +276,19 @@ export default function TimerScreen({ route }) {
             <Text style={styles.timerCaption}>
               {isOvertime
                 ? checkpointWindowEnded
-                  ? 'The two-hour checkpoint window has ended.'
-                  : 'A short chime sounds every five minutes.'
-                : `${activeTimer.durationMinutes}-minute meditation`}
+                  ? t('The two-hour checkpoint window has ended.')
+                  : t('A short chime sounds every five minutes.')
+                : t('{{duration}}-minute meditation', { duration: activeTimer.durationMinutes })}
             </Text>
 
             {!alarmAccessAvailable && (
               <View style={styles.activeAlarmWarning}>
-                <Text style={styles.activeAlarmWarningTitle}>Alarm access required</Text>
+                <Text style={styles.activeAlarmWarningTitle}>{t('Alarm access required')}</Text>
                 <Text style={styles.activeAlarmWarningText}>
-                  Checkpoint chimes are paused until “Alarms & reminders” access is restored.
+                  {t('Checkpoint chimes are paused until “Alarms & reminders” access is restored.')}
                 </Text>
                 <Pressable accessibilityRole="button" onPress={openAlarmSettings}>
-                  <Text style={styles.activeAlarmWarningLink}>Open alarm settings</Text>
+                  <Text style={styles.activeAlarmWarningLink}>{t('Open alarm settings')}</Text>
                 </Pressable>
               </View>
             )}
@@ -296,20 +298,20 @@ export default function TimerScreen({ route }) {
               style={({ pressed }) => [styles.finishButton, pressed && styles.buttonPressed]}
               onPress={handleFinish}
             >
-              <Text style={styles.finishButtonText}>Finish meditation</Text>
+              <Text style={styles.finishButtonText}>{t('Finish meditation')}</Text>
             </Pressable>
           </View>
         ) : (
           <>
             <View style={styles.introCard}>
-              <Text style={styles.introTitle}>Choose your sitting time</Text>
+              <Text style={styles.introTitle}>{t('Choose your sitting time')}</Text>
               <Text style={styles.introText}>
-                One gentle chime marks the end. If you continue, another chime sounds every five minutes for up to two extra hours—no snoozing required.
+                {t('One gentle chime marks the end. If you continue, another chime sounds every five minutes for up to two extra hours—no snoozing required.')}
               </Text>
             </View>
 
             <View
-              accessibilityLabel="Meditation duration"
+              accessibilityLabel={t('Meditation duration')}
               accessibilityRole="radiogroup"
               style={styles.durationGrid}
             >
@@ -317,7 +319,7 @@ export default function TimerScreen({ route }) {
                 const isSelected = duration === selectedDuration;
                 return (
                   <Pressable
-                    accessibilityLabel={`${duration} minutes`}
+                    accessibilityLabel={`${duration} ${t('minutes')}`}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: isSelected }}
                     key={duration}
@@ -338,7 +340,7 @@ export default function TimerScreen({ route }) {
                       styles.durationUnit,
                       isSelected && styles.selectedDurationText,
                     ]}>
-                      minutes
+                      {t('minutes')}
                     </Text>
                   </Pressable>
                 );
@@ -355,7 +357,7 @@ export default function TimerScreen({ route }) {
               onPress={() => handleStart()}
             >
               <Text style={styles.startButtonText}>
-                {isStarting ? 'Preparing timer…' : `Start ${selectedDuration}-minute timer`}
+                {isStarting ? t('Preparing timer…') : t('Start {{duration}}-minute timer', { duration: selectedDuration })}
               </Text>
             </Pressable>
 
@@ -369,7 +371,7 @@ export default function TimerScreen({ route }) {
               onPress={handleTestChime}
             >
               <Text style={styles.testButtonText}>
-                {isTestingChime ? 'Scheduling chime…' : 'Test five-second chime'}
+                {isTestingChime ? t('Scheduling chime…') : t('Test five-second chime')}
               </Text>
             </Pressable>
 

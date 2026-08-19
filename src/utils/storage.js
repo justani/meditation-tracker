@@ -112,7 +112,16 @@ export const saveAppSettings = async (settings) => {
 export const loadAppSettings = async () => {
   try {
     const jsonValue = await AsyncStorage.getItem(KEYS.SETTINGS);
-    return jsonValue != null ? JSON.parse(jsonValue) : createAppSettings();
+    if (jsonValue == null) return createAppSettings();
+
+    const storedSettings = JSON.parse(jsonValue);
+    return {
+      ...createAppSettings(),
+      ...storedSettings,
+      // Existing installations already expressed a quote-language preference.
+      // Preserve it without interrupting them with the new-install chooser.
+      languageSelectionCompleted: storedSettings.languageSelectionCompleted ?? true,
+    };
   } catch (error) {
     console.error('Error loading app settings:', error);
     return createAppSettings();

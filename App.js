@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Alert, AppState } from 'react-native';
+import { ActivityIndicator, Alert, AppState, View } from 'react-native';
 import { createNavigationContainerRef, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
@@ -13,6 +13,7 @@ import ProgressScreen from './src/screens/ProgressScreen';
 import TimerScreen from './src/screens/TimerScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import BackupScreen from './src/screens/BackupScreen';
+import LanguageSelectionScreen from './src/screens/LanguageSelectionScreen';
 import RootModalManager from './src/components/RootModalManager';
 import WidgetSyncManager from './src/components/WidgetSyncManager';
 import { BackupService } from './src/services/backupService';
@@ -28,6 +29,7 @@ import {
   checkForFlexiblePlayStoreUpdate,
   completePlayStoreUpdate,
 } from './src/services/playStoreUpdateService';
+import { useTranslation } from './src/hooks/useTranslation';
 
 const Tab = createBottomTabNavigator();
 const navigationRef = createNavigationContainerRef();
@@ -127,6 +129,7 @@ const AutomaticBackupManager = () => {
 
 const FlexibleUpdateManager = () => {
   const { loading } = useMeditation();
+  const { t } = useTranslation();
   const appState = useRef(AppState.currentState);
   const checkInProgress = useRef(false);
   const restartPromptVisible = useRef(false);
@@ -145,12 +148,12 @@ const FlexibleUpdateManager = () => {
     };
 
     Alert.alert(
-      'Update ready',
-      'Restart the app to finish installing the latest version.',
+      t('Update ready'),
+      t('Restart the app to finish installing the latest version.'),
       [
-        { text: 'Later', style: 'cancel', onPress: closePrompt },
+        { text: t('Later'), style: 'cancel', onPress: closePrompt },
         {
-          text: 'Restart now',
+          text: t('Restart now'),
           onPress: () => {
             closePrompt();
             completePlayStoreUpdate();
@@ -159,7 +162,7 @@ const FlexibleUpdateManager = () => {
       ],
       { cancelable: true, onDismiss: closePrompt }
     );
-  }, [hasActiveMeditation]);
+  }, [hasActiveMeditation, t]);
 
   const checkForUpdate = useCallback(async () => {
     if (loading || checkInProgress.current || await hasActiveMeditation()) return;
@@ -197,95 +200,125 @@ const FlexibleUpdateManager = () => {
   return null;
 };
 
-export default function App() {
+const AppNavigator = () => {
+  const { t } = useTranslation();
+
   return (
-    <MeditationProvider>
+    <ModalProvider>
+      <>
+        <NavigationContainer
+          ref={navigationRef}
+          onReady={() => {
+            if (pendingTimerStart) openTimerFromNotification(pendingTimerStart);
+          }}
+        >
+          <StatusBar style="dark" />
+          <Tab.Navigator
+            screenOptions={({ route }) => ({
+              tabBarIcon: ({ focused, color, size }) => {
+                let iconName;
+
+                if (route.name === 'Home') {
+                  iconName = focused ? 'home' : 'home-outline';
+                } else if (route.name === 'Progress') {
+                  iconName = focused ? 'calendar' : 'calendar-outline';
+                } else if (route.name === 'Timer') {
+                  iconName = focused ? 'timer' : 'timer-outline';
+                } else if (route.name === 'Notifications') {
+                  iconName = focused ? 'notifications' : 'notifications-outline';
+                } else if (route.name === 'Settings') {
+                  iconName = focused ? 'settings' : 'settings-outline';
+                }
+
+                return <Ionicons name={iconName} size={size} color={color} />;
+              },
+              tabBarActiveTintColor: COLORS.primaryActive,
+              tabBarInactiveTintColor: COLORS.textSubtle,
+              tabBarStyle: {
+                backgroundColor: COLORS.surface,
+                borderTopColor: COLORS.border,
+              },
+              headerShown: false,
+            })}
+          >
+            <Tab.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                title: t('Meditation Tracker'),
+                tabBarLabel: t('Today'),
+              }}
+            />
+            <Tab.Screen
+              name="Progress"
+              component={ProgressScreen}
+              options={{
+                title: t('Your Progress'),
+                tabBarLabel: t('Progress'),
+              }}
+            />
+            <Tab.Screen
+              name="Timer"
+              component={TimerScreen}
+              options={{
+                title: t('Meditation Timer'),
+                tabBarLabel: t('Timer'),
+              }}
+            />
+            <Tab.Screen
+              name="Notifications"
+              component={NotificationScreen}
+              options={{
+                title: t('Notifications'),
+                tabBarLabel: t('Reminders'),
+              }}
+            />
+            <Tab.Screen
+              name="Settings"
+              component={BackupScreen}
+              options={{
+                title: t('Settings'),
+                tabBarLabel: t('Settings'),
+              }}
+            />
+          </Tab.Navigator>
+        </NavigationContainer>
+        <RootModalManager />
+      </>
+    </ModalProvider>
+  );
+};
+
+const AppContent = () => {
+  const { loading, settings } = useMeditation();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background }}>
+        <ActivityIndicator size="large" color={COLORS.primaryInk} />
+      </View>
+    );
+  }
+
+  if (!settings.languageSelectionCompleted) {
+    return <LanguageSelectionScreen />;
+  }
+
+  return (
+    <>
       <AutomaticBackupManager />
       <FlexibleUpdateManager />
       <NotificationResponseManager />
       <WidgetSyncManager />
-      <ModalProvider>
-        <>
-          <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-              if (pendingTimerStart) openTimerFromNotification(pendingTimerStart);
-            }}
-          >
-            <StatusBar style="dark" />
-            <Tab.Navigator
-              screenOptions={({ route }) => ({
-                tabBarIcon: ({ focused, color, size }) => {
-                  let iconName;
+      <AppNavigator />
+    </>
+  );
+};
 
-                  if (route.name === 'Home') {
-                    iconName = focused ? 'home' : 'home-outline';
-                  } else if (route.name === 'Progress') {
-                    iconName = focused ? 'calendar' : 'calendar-outline';
-                  } else if (route.name === 'Timer') {
-                    iconName = focused ? 'timer' : 'timer-outline';
-                  } else if (route.name === 'Notifications') {
-                    iconName = focused ? 'notifications' : 'notifications-outline';
-                  } else if (route.name === 'Backup') {
-                    iconName = focused ? 'cloud' : 'cloud-outline';
-                  }
-
-                  return <Ionicons name={iconName} size={size} color={color} />;
-                },
-                tabBarActiveTintColor: COLORS.primaryActive,
-                tabBarInactiveTintColor: COLORS.textSubtle,
-                tabBarStyle: {
-                  backgroundColor: COLORS.surface,
-                  borderTopColor: COLORS.border,
-                },
-                headerShown: false,
-              })}
-            >
-              <Tab.Screen 
-                name="Home" 
-                component={HomeScreen}
-                options={{
-                  title: 'Meditation Tracker',
-                  tabBarLabel: 'Today',
-                }}
-              />
-              <Tab.Screen 
-                name="Progress" 
-                component={ProgressScreen}
-                options={{
-                  title: 'Your Progress',
-                  tabBarLabel: 'Progress',
-                }}
-              />
-              <Tab.Screen
-                name="Timer"
-                component={TimerScreen}
-                options={{
-                  title: 'Meditation Timer',
-                  tabBarLabel: 'Timer',
-                }}
-              />
-              <Tab.Screen 
-                name="Notifications" 
-                component={NotificationScreen}
-                options={{
-                  title: 'Notifications',
-                  tabBarLabel: 'Reminders',
-                }}
-              />
-              <Tab.Screen 
-                name="Backup" 
-                component={BackupScreen}
-                options={{
-                  title: 'Backup & Sync',
-                  tabBarLabel: 'Backup',
-                }}
-              />
-            </Tab.Navigator>
-          </NavigationContainer>
-          <RootModalManager />
-        </>
-      </ModalProvider>
+export default function App() {
+  return (
+    <MeditationProvider>
+      <AppContent />
     </MeditationProvider>
   );
 }

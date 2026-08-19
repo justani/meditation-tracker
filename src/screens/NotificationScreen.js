@@ -15,16 +15,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useMeditation } from '../context/MeditationContext';
+import { useTranslation } from '../hooks/useTranslation';
 import { COLORS } from '../theme/colors';
 
 export default function NotificationScreen() {
   const { settings, updateSettings } = useMeditation();
+  const { locale, t } = useTranslation();
   const [showMorningPicker, setShowMorningPicker] = useState(false);
   const [showEveningPicker, setShowEveningPicker] = useState(false);
-  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [morningTime, setMorningTime] = useState(new Date());
   const [eveningTime, setEveningTime] = useState(new Date());
-  const [notificationsEnabled, setNotificationsEnabled] = useState(settings.notificationsEnabled);
+  const notificationsEnabled = settings.notificationsEnabled;
 
   useEffect(() => {
     // Convert time strings to Date objects
@@ -42,12 +43,11 @@ export default function NotificationScreen() {
       setEveningTime(evening);
     }
 
-    setNotificationsEnabled(settings.notificationsEnabled);
   }, [settings]);
 
   const requestPermissions = async () => {
     if (!Device.isDevice) {
-      Alert.alert('Error', 'Push notifications only work on physical devices');
+      Alert.alert(t('Error'), t('Push notifications only work on physical devices'));
       return false;
     }
 
@@ -61,8 +61,8 @@ export default function NotificationScreen() {
 
     if (finalStatus !== 'granted') {
       Alert.alert(
-        'Permission Required',
-        'Please enable notifications in your device settings to receive meditation reminders.'
+        t('Permission Required'),
+        t('Please enable notifications in your device settings to receive meditation reminders.')
       );
       return false;
     }
@@ -79,10 +79,13 @@ export default function NotificationScreen() {
       }
     }
 
-    setNotificationsEnabled(enabled);
-    
-    // Update settings
-    await updateSettings({ notificationsEnabled: enabled });
+    const saved = await updateSettings({ notificationsEnabled: enabled });
+    if (!saved) {
+      Alert.alert(
+        t('Could not save reminder settings'),
+        t('Your previous reminder settings are still active. Please try again.')
+      );
+    }
 
     // Notification scheduling is handled automatically by the context when settings change
   };
@@ -95,14 +98,22 @@ export default function NotificationScreen() {
     if (!selectedTime) return;
 
     const timeString = `${selectedTime.getHours().toString().padStart(2, '0')}:${selectedTime.getMinutes().toString().padStart(2, '0')}`;
-    
-    if (type === 'morning') {
-      setMorningTime(selectedTime);
-      await updateSettings({ morningReminderTime: timeString });
-    } else {
-      setEveningTime(selectedTime);
-      await updateSettings({ eveningReminderTime: timeString });
+
+    const settingKey = type === 'morning'
+      ? 'morningReminderTime'
+      : 'eveningReminderTime';
+    const saved = await updateSettings({ [settingKey]: timeString });
+
+    if (!saved) {
+      Alert.alert(
+        t('Could not save reminder settings'),
+        t('Your previous reminder settings are still active. Please try again.')
+      );
+      return;
     }
+
+    if (type === 'morning') setMorningTime(selectedTime);
+    else setEveningTime(selectedTime);
   };
 
   const handleTimePickerDismiss = (type) => {
@@ -113,33 +124,24 @@ export default function NotificationScreen() {
     }
   };
 
-  const handleLanguageChange = async (language) => {
-    await updateSettings({ language });
-    setShowLanguagePicker(false);
-  };
-
-  const getLanguageDisplayName = (language) => {
-    return language === 'hindi' ? 'हिंदी' : 'English';
-  };
-
   const formatTime = (date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Meditation Reminders</Text>
+        <Text style={styles.title}>{t('Meditation Reminders')}</Text>
         <Text style={styles.subtitle}>
-          Set practice reminders and receive one Dhamma teaching each afternoon
+          {t('Set practice reminders and receive one Dhamma teaching each afternoon')}
         </Text>
 
       {/* Notifications Toggle */}
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
-          <Text style={styles.settingLabel}>Enable Notifications</Text>
+          <Text style={styles.settingLabel}>{t('Enable Notifications')}</Text>
           <Text style={styles.settingDescription}>
-            Receive daily reminders for your meditation sessions
+            {t('Receive daily reminders for your meditation sessions')}
           </Text>
         </View>
         <Switch
@@ -154,10 +156,10 @@ export default function NotificationScreen() {
       <View style={[styles.settingRow, !notificationsEnabled && styles.disabled]}>
         <View style={styles.settingInfo}>
           <Text style={[styles.settingLabel, !notificationsEnabled && styles.disabledText]}>
-            Morning Meditation
+            {t('Morning Meditation')}
           </Text>
           <Text style={[styles.settingDescription, !notificationsEnabled && styles.disabledText]}>
-            Daily reminder for morning practice
+            {t('Daily reminder for morning practice')}
           </Text>
         </View>
         <TouchableOpacity
@@ -175,10 +177,10 @@ export default function NotificationScreen() {
       <View style={[styles.settingRow, !notificationsEnabled && styles.disabled]}>
         <View style={styles.settingInfo}>
           <Text style={[styles.settingLabel, !notificationsEnabled && styles.disabledText]}>
-            Evening Meditation
+            {t('Evening Meditation')}
           </Text>
           <Text style={[styles.settingDescription, !notificationsEnabled && styles.disabledText]}>
-            Reminder when you have not meditated that day
+            {t('Reminder when you have not meditated that day')}
           </Text>
         </View>
         <TouchableOpacity
@@ -192,25 +194,6 @@ export default function NotificationScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Language Selection */}
-      <View style={styles.settingRow}>
-        <View style={styles.settingInfo}>
-          <Text style={styles.settingLabel}>Quote Language</Text>
-          <Text style={styles.settingDescription}>
-            Choose language for meditation quotes and notifications
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={styles.languageButton}
-          onPress={() => setShowLanguagePicker(true)}
-        >
-          <Text style={styles.languageText}>
-            {getLanguageDisplayName(settings.language)}
-          </Text>
-          <Text style={styles.dropdownArrow}>▼</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* iOS Time Pickers */}
       {Platform.OS === 'ios' && (
         <>
@@ -220,11 +203,11 @@ export default function NotificationScreen() {
                 <View style={styles.pickerContainer}>
                   <View style={styles.pickerHeader}>
                     <TouchableOpacity onPress={() => setShowMorningPicker(false)}>
-                      <Text style={styles.pickerButton}>Cancel</Text>
+                      <Text style={styles.pickerButton}>{t('Cancel')}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.pickerTitle}>Morning Reminder</Text>
+                    <Text style={styles.pickerTitle}>{t('Morning Reminder')}</Text>
                     <TouchableOpacity onPress={() => setShowMorningPicker(false)}>
-                      <Text style={styles.pickerButton}>Done</Text>
+                      <Text style={styles.pickerButton}>{t('Done')}</Text>
                     </TouchableOpacity>
                   </View>
                   <DateTimePicker
@@ -245,11 +228,11 @@ export default function NotificationScreen() {
                 <View style={styles.pickerContainer}>
                   <View style={styles.pickerHeader}>
                     <TouchableOpacity onPress={() => setShowEveningPicker(false)}>
-                      <Text style={styles.pickerButton}>Cancel</Text>
+                      <Text style={styles.pickerButton}>{t('Cancel')}</Text>
                     </TouchableOpacity>
-                    <Text style={styles.pickerTitle}>Evening Reminder</Text>
+                    <Text style={styles.pickerTitle}>{t('Evening Reminder')}</Text>
                     <TouchableOpacity onPress={() => setShowEveningPicker(false)}>
-                      <Text style={styles.pickerButton}>Done</Text>
+                      <Text style={styles.pickerButton}>{t('Done')}</Text>
                     </TouchableOpacity>
                   </View>
                   <DateTimePicker
@@ -264,61 +247,6 @@ export default function NotificationScreen() {
             </Modal>
           )}
         </>
-      )}
-
-      {/* Language Picker Modal */}
-      {showLanguagePicker && (
-        <Modal transparent animationType="slide">
-          <View style={styles.modalOverlay}>
-            <View style={styles.pickerContainer}>
-              <View style={styles.pickerHeader}>
-                <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
-                  <Text style={styles.pickerButton}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={styles.pickerTitle}>Select Language</Text>
-                <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
-                  <Text style={styles.pickerButton}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.languageOptions}>
-                <TouchableOpacity
-                  style={[
-                    styles.languageOption,
-                    settings.language === 'english' && styles.selectedLanguageOption,
-                  ]}
-                  onPress={() => handleLanguageChange('english')}
-                >
-                  <Text
-                    style={[
-                      styles.languageOptionText,
-                      settings.language === 'english' && styles.selectedLanguageOptionText,
-                    ]}
-                  >
-                    English
-                  </Text>
-                  {settings.language === 'english' && <Text style={styles.checkmark}>✓</Text>}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.languageOption,
-                    settings.language === 'hindi' && styles.selectedLanguageOption,
-                  ]}
-                  onPress={() => handleLanguageChange('hindi')}
-                >
-                  <Text
-                    style={[
-                      styles.languageOptionText,
-                      settings.language === 'hindi' && styles.selectedLanguageOptionText,
-                    ]}
-                  >
-                    हिंदी (Hindi)
-                  </Text>
-                  {settings.language === 'hindi' && <Text style={styles.checkmark}>✓</Text>}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
       )}
 
       {/* Android Time Pickers */}
@@ -343,11 +271,9 @@ export default function NotificationScreen() {
       )}
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>🧘‍♂️ Reminder Schedule</Text>
+        <Text style={styles.infoTitle}>{t('🧘‍♂️ Reminder Schedule')}</Text>
         <Text style={styles.infoText}>
-          One teaching arrives at a random time between noon and 6 PM. If you haven't meditated,
-          we'll also remind you at your evening time, 10 PM, and 11 PM. Logging a session stops
-          the remaining practice reminders.
+          {t('One teaching arrives at a random time between noon and 6 PM. If you haven\'t meditated, we\'ll also remind you at your evening time, 10 PM, and 11 PM. Logging a session stops the remaining practice reminders.')}
         </Text>
       </View>
       </ScrollView>
@@ -477,55 +403,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textMuted,
     lineHeight: 20,
-  },
-  languageButton: {
-    backgroundColor: COLORS.primaryActive,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 120,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  languageText: {
-    color: COLORS.onPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  dropdownArrow: {
-    color: COLORS.onPrimary,
-    fontSize: 12,
-    marginLeft: 8,
-  },
-  languageOptions: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  languageOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginVertical: 4,
-  },
-  selectedLanguageOption: {
-    backgroundColor: COLORS.primarySoft,
-  },
-  languageOptionText: {
-    fontSize: 18,
-    color: COLORS.text,
-    fontWeight: '500',
-  },
-  selectedLanguageOptionText: {
-    color: COLORS.primaryInk,
-    fontWeight: '600',
-  },
-  checkmark: {
-    fontSize: 18,
-    color: COLORS.primaryInk,
-    fontWeight: 'bold',
   },
 });

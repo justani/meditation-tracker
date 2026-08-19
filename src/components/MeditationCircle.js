@@ -4,6 +4,7 @@ import Svg, { Circle, Line, Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { SESSION_TYPES } from '../types';
 import { COLORS } from '../theme/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -40,8 +41,9 @@ export default function MeditationCircle({
   onLongPress,
   disabled = false 
 }) {
+  const { t } = useTranslation();
   const isMorning = type === SESSION_TYPES.MORNING;
-  const label = isMorning ? 'Morning' : 'Evening';
+  const label = isMorning ? t('Morning') : t('Evening');
   const sessionColor = isMorning ? COLORS.sunrise : COLORS.evening;
   const sessionOverlay = isMorning ? COLORS.sunriseOverlay : COLORS.eveningOverlay;
   
@@ -216,7 +218,7 @@ export default function MeditationCircle({
       activeOpacity={1}
       delayLongPress={LONG_PRESS_DURATION}
       accessibilityRole="button"
-      accessibilityLabel={`${label} meditation, ${completed ? 'completed' : 'not completed'}`}
+      accessibilityLabel={`${label} ${t('meditation')}, ${completed ? t('completed') : t('not completed')}`}
     >
       <View style={styles.circleContainer}>
         {/* Progress Ring */}

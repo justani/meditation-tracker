@@ -28,7 +28,8 @@ export const AppSettingsType = {
   eveningReminderTime: 'string', // HH:MM format
   notificationsEnabled: 'boolean',
   theme: 'string', // 'light' | 'dark' | 'auto'
-  language: 'string' // 'english' | 'hindi'
+  language: 'string', // 'english' | 'hindi'
+  languageSelectionCompleted: 'boolean'
 };
 
 // Session types
@@ -64,5 +65,6 @@ export const createAppSettings = () => ({
   notificationsEnabled: false,
   theme: 'auto',
   language: 'english',
+  languageSelectionCompleted: false,
   isFirstTimeUser: true
 });

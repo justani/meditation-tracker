@@ -8,6 +8,7 @@ import { getCalendarGrid, getDaysInMonth, getMonthName, getTodayDate } from '../
 import { formatMeditationTime, getSessionPeriod } from '../utils/sessionHelpers';
 import { SESSION_TYPES } from '../types';
 import { COLORS } from '../theme/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 const getMonthKey = (year, month) => (
   `${year}-${String(month + 1).padStart(2, '0')}`
@@ -26,25 +27,31 @@ const getPracticeComparison = ({
   practiceDays,
   previousPracticeDays,
   comparisonPeriodLabel,
+  t,
 }) => {
-  if (isFutureMonth) return 'This month has not started yet';
-  if (practiceDays === 0) return 'No practice recorded in this period yet';
+  if (isFutureMonth) return t('This month has not started yet');
+  if (practiceDays === 0) return t('No practice recorded in this period yet');
   if (previousPracticeDays === 0) {
-    return `No practice days in ${comparisonPeriodLabel}`;
+    return t('No practice days in {{period}}', { period: comparisonPeriodLabel });
   }
 
   const difference = practiceDays - previousPracticeDays;
   if (difference === 0) {
-    return `Same number of practice days as ${comparisonPeriodLabel}`;
+    return t('Same number of practice days as {{period}}', { period: comparisonPeriodLabel });
   }
 
-  const differenceLabel = Math.abs(difference) === 1 ? 'day' : 'days';
-  return `${Math.abs(difference)} ${difference > 0 ? 'more' : 'fewer'} practice ${differenceLabel} than ${comparisonPeriodLabel}`;
+  return t(
+    difference > 0
+      ? '{{count}} more practice days than {{period}}'
+      : '{{count}} fewer practice days than {{period}}',
+    { count: Math.abs(difference), period: comparisonPeriodLabel }
+  );
 };
 
 export default function ProgressScreen() {
   const { sessions, loading, markSessionComplete, removeSessionComplete } = useMeditation();
   const { showModal } = useModal();
+  const { language, locale, t } = useTranslation();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
@@ -52,7 +59,7 @@ export default function ProgressScreen() {
   const [pendingSessionData, setPendingSessionData] = useState(null);
   
   const calendarGrid = getCalendarGrid(selectedYear, selectedMonth);
-  const monthName = getMonthName(selectedMonth);
+  const monthName = getMonthName(selectedMonth, locale);
   const today = getTodayDate();
   
   // Calculate monthly statistics. Timer sessions are grouped by their local start time.
@@ -94,7 +101,7 @@ export default function ProgressScreen() {
       session => getSessionPeriod(session) === SESSION_TYPES.EVENING
     ).length,
     practiceDays: getPracticeDayCount(monthSessions, availableDays),
-    meditationTime: formatMeditationTime(totalMinutes),
+    meditationTime: formatMeditationTime(totalMinutes, language),
   };
 
   const previousPracticeDays = getPracticeDayCount(
@@ -102,14 +109,18 @@ export default function ProgressScreen() {
     previousPeriodDays
   );
   const comparisonPeriodLabel = isCurrentMonth
-    ? 'the same period last month'
-    : 'the previous month';
+    ? t('the same period last month')
+    : t('the previous month');
   const comparisonText = getPracticeComparison({
     isFutureMonth,
     practiceDays: monthlyStats.practiceDays,
     previousPracticeDays,
     comparisonPeriodLabel,
+    t,
   });
+  const weekDayLabels = Array.from({ length: 7 }, (_, index) => (
+    new Date(2024, 0, 7 + index).toLocaleDateString(locale, { weekday: 'short' })
+  ));
   
   const getSessionsForDate = (date) => {
     return sessions.filter(session => session.date === date && session.completed);
@@ -216,7 +227,7 @@ export default function ProgressScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading your progress...</Text>
+          <Text style={styles.loadingText}>{t('Loading your progress...')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -238,7 +249,7 @@ export default function ProgressScreen() {
             <Text style={[
               styles.tabText,
               activeTab === SESSION_TYPES.MORNING && styles.activeTabText
-            ]}>Morning</Text>
+            ]}>{t('Morning')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -252,7 +263,7 @@ export default function ProgressScreen() {
             <Text style={[
               styles.tabText,
               activeTab === SESSION_TYPES.EVENING && styles.activeTabText
-            ]}>Evening</Text>
+            ]}>{t('Evening')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -279,7 +290,7 @@ export default function ProgressScreen() {
         
         {/* Calendar Days Header */}
         <View style={styles.daysHeader}>
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          {weekDayLabels.map((day) => (
             <Text key={day} style={styles.dayHeaderText}>{day}</Text>
           ))}
         </View>
@@ -291,7 +302,7 @@ export default function ProgressScreen() {
         
         {/* Monthly Progress */}
         <View style={styles.statsPanel}>
-          <Text style={styles.statsPanelTitle}>Monthly Progress</Text>
+          <Text style={styles.statsPanelTitle}>{t('Monthly Progress')}</Text>
 
           <View style={styles.practiceSummary}>
             <View style={styles.practiceDaysNumberContainer}>
@@ -306,7 +317,12 @@ export default function ProgressScreen() {
             </View>
             <View style={styles.practiceDaysCopy}>
               <Text style={styles.practiceDaysLabel}>
-                of {availableDays} {availableDays === 1 ? 'day' : 'days'} practiced
+                {t(
+                  availableDays === 1
+                    ? 'of {{days}} day practiced'
+                    : 'of {{days}} days practiced',
+                  { days: availableDays }
+                )}
               </Text>
               <Text style={styles.comparisonText}>{comparisonText}</Text>
             </View>
@@ -315,22 +331,22 @@ export default function ProgressScreen() {
           <View style={styles.monthlyTotals}>
             <View style={styles.monthlyTotalItem}>
               <Text style={styles.monthlyTotalValue}>{monthlyStats.meditationTime}</Text>
-              <Text style={styles.monthlyTotalLabel}>Meditation time</Text>
+              <Text style={styles.monthlyTotalLabel}>{t('Meditation time')}</Text>
             </View>
             <View style={styles.totalDivider} />
             <View style={styles.monthlyTotalItem}>
               <Text style={styles.monthlyTotalValue}>{monthlyStats.totalSessions}</Text>
-              <Text style={styles.monthlyTotalLabel}>Sessions</Text>
+              <Text style={styles.monthlyTotalLabel}>{t('Sessions')}</Text>
             </View>
           </View>
 
           <View style={styles.sessionBreakdown}>
             <Text style={[styles.sessionBreakdownText, { color: COLORS.morning }]}>
-              Morning {monthlyStats.morningCount}
+              {t('Morning')} {monthlyStats.morningCount}
             </Text>
             <View style={styles.breakdownDot} />
             <Text style={[styles.sessionBreakdownText, { color: COLORS.evening }]}>
-              Evening {monthlyStats.eveningCount}
+              {t('Evening')} {monthlyStats.eveningCount}
             </Text>
           </View>
         </View>

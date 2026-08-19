@@ -10,9 +10,9 @@ export const getTodayDate = () => {
 };
 
 // Format date for display (e.g., "Monday, January 15, 2024")
-export const formatDateDisplay = (dateString) => {
+export const formatDateDisplay = (dateString, locale = 'en-IN') => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -21,9 +21,9 @@ export const formatDateDisplay = (dateString) => {
 };
 
 // Format date for short display (e.g., "Jan 15")
-export const formatDateShort = (dateString) => {
+export const formatDateShort = (dateString, locale = 'en-IN') => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric'
   });
@@ -131,12 +131,8 @@ export const getRelativeDateString = (dateString) => {
 };
 
 // Get month name
-export const getMonthName = (monthIndex) => {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  return months[monthIndex];
+export const getMonthName = (monthIndex, locale = 'en-IN') => {
+  return new Date(2024, monthIndex, 1).toLocaleDateString(locale, { month: 'long' });
 };
 
 // Get day name

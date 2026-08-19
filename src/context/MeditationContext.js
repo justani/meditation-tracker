@@ -229,7 +229,7 @@ export const MeditationProvider = ({ children }) => {
       const currentSessions = sessionsOverride || state.sessions;
       if (!currentSettings.notificationsEnabled) return;
 
-      await configureReminderNotificationActions();
+      await configureReminderNotificationActions(currentSettings.language);
 
       const { morningReminderTime, eveningReminderTime } = currentSettings;
 
@@ -672,7 +672,8 @@ export const MeditationProvider = ({ children }) => {
   const updateSettings = async (newSettings) => {
     try {
       const updatedSettings = { ...state.settings, ...newSettings };
-      await saveAppSettings(updatedSettings);
+      const saved = await saveAppSettings(updatedSettings);
+      if (!saved) return false;
       dispatch({
         type: ACTIONS.UPDATE_SETTINGS,
         payload: newSettings

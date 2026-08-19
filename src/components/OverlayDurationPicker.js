@@ -9,10 +9,12 @@ import {
 } from 'react-native';
 import { SESSION_TYPES } from '../types';
 import { COLORS } from '../theme/colors';
+import { useTranslation } from '../hooks/useTranslation';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('screen');
 
 const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionType }) => {
+  const { language, t } = useTranslation();
   const [hours, setHours] = useState(1);
   const [minutes, setMinutes] = useState(0); // Default to 60 minutes (1 hour)
 
@@ -20,7 +22,7 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
 
 
   const isMorning = sessionType === SESSION_TYPES.MORNING;
-  const sessionLabel = isMorning ? 'Morning' : 'Evening';
+  const sessionLabel = isMorning ? t('Morning') : t('Evening');
   const sessionIcon = isMorning ? '☀️' : '🌙';
 
   // Generate arrays for picker values
@@ -47,11 +49,13 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
 
   const formatTime = (hours, minutes) => {
     if (hours === 0) {
-      return `${minutes} min`;
+      return `${minutes} ${language === 'hindi' ? 'मिनट' : 'min'}`;
     } else if (minutes === 0) {
-      return `${hours}h`;
+      return `${hours} ${language === 'hindi' ? 'घंटे' : 'h'}`;
     } else {
-      return `${hours}h ${minutes}m`;
+      return language === 'hindi'
+        ? `${hours} घंटे ${minutes} मिनट`
+        : `${hours}h ${minutes}m`;
     }
   };
 
@@ -93,11 +97,11 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
             onPress={handleCancel}
             accessibilityRole="button"
           >
-            <Text style={styles.cancelButton}>Cancel</Text>
+            <Text style={styles.cancelButton}>{t('Cancel')}</Text>
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.sessionIcon}>{sessionIcon}</Text>
-            <Text style={styles.title}>{sessionLabel} Meditation</Text>
+            <Text style={styles.title}>{sessionLabel} {t('Meditation')}</Text>
           </View>
           <View style={styles.headerAction} />
         </View>
@@ -108,7 +112,7 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.instruction}>
-            How long did you meditate?
+            {t('How long did you meditate?')}
           </Text>
 
           <View style={styles.selectedTimeContainer}>
@@ -122,7 +126,7 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
               options={hourOptions}
               selectedValue={hours}
               onSelect={setHours}
-              label="Hours"
+              label={t('Hours')}
             />
             
             <View style={styles.pickerSeparator} />
@@ -131,12 +135,12 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
               options={minuteOptions}
               selectedValue={minutes}
               onSelect={setMinutes}
-              label="Minutes"
+              label={t('Minutes')}
             />
           </View>
 
           <View style={styles.presetContainer}>
-            <Text style={styles.presetLabel}>Quick Select:</Text>
+            <Text style={styles.presetLabel}>{t('Quick Select:')}</Text>
             <View style={styles.presetButtons}>
               {[5, 10, 15, 20, 30, 45, 60].map((mins) => (
                 <TouchableOpacity
@@ -154,7 +158,7 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
                     styles.presetButtonText,
                     (hours * 60 + minutes) === mins && styles.selectedPresetText
                   ]}>
-                    {mins}m
+                    {mins}{language === 'hindi' ? ' मि.' : 'm'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -168,7 +172,7 @@ const OverlayDurationPicker = ({ visible, onClose, onConfirm, onCancel, sessionT
             onPress={handleConfirm}
             accessibilityRole="button"
           >
-            <Text style={styles.doneButtonText}>Done</Text>
+            <Text style={styles.doneButtonText}>{t('Done')}</Text>
           </TouchableOpacity>
         </View>
       </View>
