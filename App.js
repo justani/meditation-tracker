@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
+import { Alert, AppState } from 'react-native';
 import { createNavigationContainerRef, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
@@ -22,6 +22,12 @@ import {
   REMINDER_START_ACTION_ID,
   REMINDER_START_DURATION_MINUTES,
 } from './src/services/reminderNotificationService';
+import { loadActiveMeditationTimer } from './src/services/meditationTimerService';
+import {
+  addPlayStoreUpdateStatusListener,
+  checkForFlexiblePlayStoreUpdate,
+  completePlayStoreUpdate,
+} from './src/services/playStoreUpdateService';
 
 const Tab = createBottomTabNavigator();
 const navigationRef = createNavigationContainerRef();
@@ -119,10 +125,83 @@ const AutomaticBackupManager = () => {
   return null;
 };
 
+const FlexibleUpdateManager = () => {
+  const { loading } = useMeditation();
+  const appState = useRef(AppState.currentState);
+  const checkInProgress = useRef(false);
+  const restartPromptVisible = useRef(false);
+
+  const hasActiveMeditation = useCallback(async () => {
+    const timer = await loadActiveMeditationTimer();
+    return Boolean(timer?.endsAt && timer.endsAt > Date.now());
+  }, []);
+
+  const offerRestart = useCallback(async () => {
+    if (restartPromptVisible.current || await hasActiveMeditation()) return;
+
+    restartPromptVisible.current = true;
+    const closePrompt = () => {
+      restartPromptVisible.current = false;
+    };
+
+    Alert.alert(
+      'Update ready',
+      'Restart the app to finish installing the latest version.',
+      [
+        { text: 'Later', style: 'cancel', onPress: closePrompt },
+        {
+          text: 'Restart now',
+          onPress: () => {
+            closePrompt();
+            completePlayStoreUpdate();
+          },
+        },
+      ],
+      { cancelable: true, onDismiss: closePrompt }
+    );
+  }, [hasActiveMeditation]);
+
+  const checkForUpdate = useCallback(async () => {
+    if (loading || checkInProgress.current || await hasActiveMeditation()) return;
+
+    checkInProgress.current = true;
+    try {
+      const result = await checkForFlexiblePlayStoreUpdate({
+        canPrompt: async () => !(await hasActiveMeditation()),
+      });
+      if (result.status === 'downloaded') await offerRestart();
+    } finally {
+      checkInProgress.current = false;
+    }
+  }, [hasActiveMeditation, loading, offerRestart]);
+
+  useEffect(() => {
+    if (!loading) checkForUpdate();
+
+    const appStateSubscription = AppState.addEventListener('change', nextAppState => {
+      if (!loading && appState.current !== 'active' && nextAppState === 'active') {
+        checkForUpdate();
+      }
+      appState.current = nextAppState;
+    });
+    const updateStatusSubscription = addPlayStoreUpdateStatusListener(({ status }) => {
+      if (status === 'downloaded') offerRestart();
+    });
+
+    return () => {
+      appStateSubscription.remove();
+      updateStatusSubscription.remove();
+    };
+  }, [checkForUpdate, loading, offerRestart]);
+
+  return null;
+};
+
 export default function App() {
   return (
     <MeditationProvider>
       <AutomaticBackupManager />
+      <FlexibleUpdateManager />
       <NotificationResponseManager />
       <WidgetSyncManager />
       <ModalProvider>
