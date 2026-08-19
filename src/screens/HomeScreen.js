@@ -6,6 +6,7 @@ import { useModal } from '../context/ModalContext';
 import { formatDateDisplay, getTodayDate } from '../utils/dateHelpers';
 import { SESSION_TYPES } from '../types';
 import MeditationCircle from '../components/MeditationCircle';
+import WidgetSuggestionCard from '../components/WidgetSuggestionCard';
 import { getDailyQuote } from '../utils/notificationMessages';
 import { formatMeditationTime, getSessionPeriod } from '../utils/sessionHelpers';
 import { clearAllData } from '../utils/storage';
@@ -162,6 +163,8 @@ export default function HomeScreen() {
             </Text>
           </View>
         )}
+
+        <WidgetSuggestionCard completedSessions={userProgress.totalSessions} />
 
         {/* Today's Practice */}
         <View style={styles.todayPracticeContainer}>

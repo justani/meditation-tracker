@@ -29,6 +29,9 @@ class MeditationWidgetProvider : AppWidgetProvider() {
     appWidgetManager: AppWidgetManager,
     appWidgetIds: IntArray,
   ) {
+    if (appWidgetIds.isNotEmpty()) {
+      MeditationWidgetStore.markEverAdded(context)
+    }
     appWidgetIds.forEach { appWidgetId ->
       render(context, appWidgetManager, appWidgetId)
     }
@@ -36,6 +39,7 @@ class MeditationWidgetProvider : AppWidgetProvider() {
   }
 
   override fun onEnabled(context: Context) {
+    MeditationWidgetStore.markEverAdded(context)
     updateAll(context)
   }
 
@@ -75,7 +79,11 @@ class MeditationWidgetProvider : AppWidgetProvider() {
     fun updateAll(context: Context) {
       val appWidgetManager = AppWidgetManager.getInstance(context)
       val componentName = ComponentName(context, MeditationWidgetProvider::class.java)
-      appWidgetManager.getAppWidgetIds(componentName).forEach { appWidgetId ->
+      val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+      if (appWidgetIds.isNotEmpty()) {
+        MeditationWidgetStore.markEverAdded(context)
+      }
+      appWidgetIds.forEach { appWidgetId ->
         render(context, appWidgetManager, appWidgetId)
       }
       MeditationWidgetRefreshScheduler.scheduleNext(context)

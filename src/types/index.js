@@ -29,7 +29,8 @@ export const AppSettingsType = {
   notificationsEnabled: 'boolean',
   theme: 'string', // 'light' | 'dark' | 'auto'
   language: 'string', // 'english' | 'hindi'
-  languageSelectionCompleted: 'boolean'
+  languageSelectionCompleted: 'boolean',
+  isFirstTimeUser: 'boolean'
 };
 
 // Session types

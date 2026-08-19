@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMeditation } from '../context/MeditationContext';
 import { BackupService } from '../services/backupService';
 import MergePreviewModal from '../components/MergePreviewModal';
+import WidgetSettingsCard from '../components/WidgetSettingsCard';
 import { COLORS } from '../theme/colors';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -340,6 +341,8 @@ const BackupScreen = () => {
             })}
           </View>
         </View>
+
+        <WidgetSettingsCard />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('Google Drive Backup')}</Text>

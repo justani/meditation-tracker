@@ -2,6 +2,7 @@ package expo.modules.meditationwidget
 
 import android.content.Context
 import org.json.JSONArray
+import java.io.File
 import java.util.Calendar
 import java.util.Locale
 
@@ -24,6 +25,7 @@ internal object MeditationWidgetStore {
   private const val KEY_SNAPSHOT_DATE = "snapshot_date"
   private const val KEY_STREAK_VALID_THROUGH = "streak_valid_through"
   private const val KEY_LANGUAGE = "language"
+  private const val EVER_ADDED_FILE_NAME = "meditation_widget_ever_added"
   private const val DEFAULT_QUOTE = "Observe reality as it is, not as you wish it to be."
   private val DATE_PATTERN = Regex("\\d{4}-\\d{2}-\\d{2}")
 
@@ -94,6 +96,14 @@ internal object MeditationWidgetStore {
     )
   }
 
+  fun markEverAdded(context: Context) {
+    runCatching {
+      everAddedFile(context).createNewFile()
+    }
+  }
+
+  fun wasEverAdded(context: Context): Boolean = everAddedFile(context).exists()
+
   internal fun currentDateKey(calendar: Calendar = Calendar.getInstance()): String =
     String.format(
       Locale.US,
@@ -105,4 +115,7 @@ internal object MeditationWidgetStore {
 
   private fun preferences(context: Context) =
     context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+  private fun everAddedFile(context: Context) =
+    File(context.noBackupFilesDir, EVER_ADDED_FILE_NAME)
 }

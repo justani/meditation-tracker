@@ -7,6 +7,7 @@ import {
   loadAppSettings,
   addSession,
   removeSession,
+  recordWidgetSessionCompletion,
   saveUserProgress,
   saveAppSettings 
 } from '../utils/storage';
@@ -512,6 +513,7 @@ export const MeditationProvider = ({ children }) => {
   const markSessionComplete = async (date, type, duration = 0) => {
     try {
       const existingSession = state.sessions.find(s => s.date === date && s.type === type);
+      const wasAlreadyCompleted = Boolean(existingSession?.completed);
       
       const session = existingSession || createMeditationSession(date, type);
       session.completed = true;
@@ -519,7 +521,10 @@ export const MeditationProvider = ({ children }) => {
       session.duration = duration; // Store duration in minutes
       
       // Save to storage
-      await addSession(session);
+      const sessionSaved = await addSession(session);
+      if (sessionSaved && !wasAlreadyCompleted) {
+        await recordWidgetSessionCompletion();
+      }
       
       // Update state
       dispatch({
@@ -582,6 +587,7 @@ export const MeditationProvider = ({ children }) => {
 
       const saved = await addSession(session);
       if (!saved) return false;
+      await recordWidgetSessionCompletion();
 
       dispatch({
         type: ACTIONS.MARK_SESSION_COMPLETE,
