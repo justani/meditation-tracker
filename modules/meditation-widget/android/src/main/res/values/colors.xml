@@ -1,0 +1,18 @@
+<resources>
+  <color name="meditation_widget_light_background">#FFF9F2</color>
+  <color name="meditation_widget_light_text">#3F2A3E</color>
+  <color name="meditation_widget_light_muted">#6D586D</color>
+  <color name="meditation_widget_light_divider">#D7BCA5</color>
+  <color name="meditation_widget_dark_background">#173F35</color>
+  <color name="meditation_widget_dark_text">#FFF9F2</color>
+  <color name="meditation_widget_dark_muted">#E8DCCD</color>
+  <color name="meditation_widget_dark_divider">#9BB8AE</color>
+  <color name="meditation_widget_streak_light">#B45309</color>
+  <color name="meditation_widget_streak_dark">#FF8200</color>
+  <color name="meditation_widget_sun">#FFB000</color>
+  <color name="meditation_widget_evening">#173F35</color>
+  <color name="meditation_widget_done_disc">#FFF0C7</color>
+  <color name="meditation_widget_pending_disc_light">#FFFFFF</color>
+  <color name="meditation_widget_pending_disc_dark">#214F43</color>
+  <color name="meditation_widget_check">#B45309</color>
+</resources>

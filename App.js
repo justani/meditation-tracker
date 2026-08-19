@@ -14,6 +14,7 @@ import TimerScreen from './src/screens/TimerScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import BackupScreen from './src/screens/BackupScreen';
 import RootModalManager from './src/components/RootModalManager';
+import WidgetSyncManager from './src/components/WidgetSyncManager';
 import { BackupService } from './src/services/backupService';
 import { COLORS } from './src/theme/colors';
 import {
@@ -123,6 +124,7 @@ export default function App() {
     <MeditationProvider>
       <AutomaticBackupManager />
       <NotificationResponseManager />
+      <WidgetSyncManager />
       <ModalProvider>
         <>
           <NavigationContainer

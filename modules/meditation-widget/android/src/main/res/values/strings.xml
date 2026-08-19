@@ -1,0 +1,19 @@
+<resources>
+  <string name="meditation_widget_name">Meditation today</string>
+  <string name="meditation_widget_description">Daily quote, current streak, and today’s meditation progress</string>
+  <string name="meditation_widget_streak_label">day streak</string>
+  <string name="meditation_widget_sample_quote">Observe reality as it is, not as you wish it to be.</string>
+  <string name="meditation_widget_morning">Morning</string>
+  <string name="meditation_widget_evening">Evening</string>
+  <string name="meditation_widget_morning_complete">Morning meditation complete</string>
+  <string name="meditation_widget_morning_pending">Morning meditation pending</string>
+  <string name="meditation_widget_evening_complete">Evening meditation complete</string>
+  <string name="meditation_widget_evening_pending">Evening meditation pending</string>
+  <string name="meditation_widget_streak_label_hi">दिन लगातार</string>
+  <string name="meditation_widget_morning_hi">सुबह</string>
+  <string name="meditation_widget_evening_hi">शाम</string>
+  <string name="meditation_widget_morning_complete_hi">सुबह का ध्यान पूरा</string>
+  <string name="meditation_widget_morning_pending_hi">सुबह का ध्यान बाकी</string>
+  <string name="meditation_widget_evening_complete_hi">शाम का ध्यान पूरा</string>
+  <string name="meditation_widget_evening_pending_hi">शाम का ध्यान बाकी</string>
+</resources>
